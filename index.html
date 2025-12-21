@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SHREYAS DODDAMANI | Portfolio V24</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>SHREYAS DODDAMANI | Portfolio V32</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -18,7 +18,6 @@
             cursor: none; 
         }
 
-        /* Minimal Mode Class Overrides */
         body.minimal-active {
             --theme-color: #ffffff !important;
             --bg-color: #050505 !important;
@@ -26,7 +25,8 @@
 
         body.minimal-active h1, 
         body.minimal-active .back-to-top,
-        body.minimal-active .about-card {
+        body.minimal-active .about-card,
+        body.minimal-active .hud-instructions {
             text-shadow: none !important;
             box-shadow: none !important;
         }
@@ -44,7 +44,7 @@
             transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* --- CUSTOM BOLT CURSOR --- */
+        /* --- CUSTOM BOLT CURSOR (FIXED SMOOTHNESS) --- */
         .custom-cursor {
             position: fixed;
             top: 0; left: 0;
@@ -53,8 +53,10 @@
             pointer-events: none;
             z-index: 9999;
             mix-blend-mode: difference;
-            transition: transform 0.1s ease-out;
+            /* REMOVED CSS TRANSITION TO FIX JITTER */
         }
+
+        @media (pointer: coarse) { .custom-cursor { display: none; } html { cursor: auto; } }
 
         .cursor-bolt {
             width: 100%; height: 100%;
@@ -108,14 +110,9 @@
         }
         .menu-link:hover { color: var(--theme-color); padding-left: 10px; }
 
-        /* Minimal Toggle Styling */
         .minimal-toggle-btn {
-            margin-top: 10px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.7rem;
-            color: var(--theme-color);
-            opacity: 0.8;
+            margin-top: 10px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem; color: var(--theme-color); opacity: 0.8;
         }
 
         .portfolio-tag {
@@ -123,6 +120,28 @@
             font-weight: 800; font-size: 0.7rem; letter-spacing: 5px;
             text-transform: uppercase; opacity: 0.6; z-index: 10;
         }
+
+        .hud-instructions {
+            position: absolute; 
+            top: 80%; right: 25px; 
+            transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 30px;
+            border-right: 2px solid var(--theme-color);
+            padding-right: 20px; text-align: right;
+            z-index: 10; opacity: 0.8;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .hud-instructions {
+                top: auto; bottom: 30px; left: 20px; right: auto;
+                text-align: left; border-right: none; border-left: 2px solid var(--theme-color);
+                padding-left: 15px;
+            }
+        }
+
+        .inst-item { font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase; line-height: 1.6; font-weight: 700; }
+        .inst-item b { color: #fff; display: block; margin-bottom: 6px; font-size: 1.15rem; font-weight: 800; }
 
         #canvas-container {
             position: fixed; 
@@ -140,8 +159,9 @@
 
         h1 {
             margin-top: 60px;
-            font-weight: 800; font-size: clamp(2rem, 6vw, 5rem); 
-            letter-spacing: 2vw; text-transform: uppercase;
+            font-weight: 800; 
+            font-size: clamp(2rem, 8vw, 5rem); 
+            letter-spacing: 1.5vw; text-transform: uppercase;
             color: var(--theme-color); text-shadow: 0 0 40px var(--theme-color);
             transition: color 0.2s linear, text-shadow 0.2s linear;
             text-align: center; width: 100%; padding: 0 20px;
@@ -168,16 +188,24 @@
         }
         .about-card.visible { opacity: 1; transform: translateY(0); }
 
+        .gallery-title {
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-weight: 800; letter-spacing: 15px; text-transform: uppercase;
+            margin-bottom: 50px; color: var(--theme-color);
+            opacity: 0; transform: translateY(30px); transition: 0.8s ease;
+        }
+        .gallery-title.visible { opacity: 1; transform: translateY(0); }
+
         .gallery-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 40px; width: 100%; max-width: 1200px; perspective: 1000px; margin-top: 50px;
+            gap: 40px; width: 100%; max-width: 1200px; perspective: 1000px;
         }
 
         .video-card {
             height: 220px; border: 1px solid var(--theme-color);
             border-radius: 4px; overflow: hidden; position: relative;
             background: #000; opacity: 0; transform: translateY(50px);
-            transition: all 0.5s ease;
+            transition: all 0.5s ease; display: block;
         }
         .video-card.visible { opacity: 1; transform: translateY(0); }
         .video-card img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) brightness(0.7); transition: 0.5s ease; }
@@ -217,7 +245,14 @@
 
     <div id="canvas-container"></div>
 
-    <div class="header"><h1>SHREYAS DODDAMANI</h1></div>
+    <div class="header">
+        <h1>SHREYAS DODDAMANI</h1>
+        <div class="hud-instructions">
+            <div class="inst-item"><b>SPECTRUM</b> Rotate sphere for colors.</div>
+            <div class="inst-item"><b>COMMAND</b> Click space to lock.</div>
+            <div class="inst-item"><b>OVERRIDE</b> Toggle via profile menu.</div>
+        </div>
+    </div>
 
     <div class="section-container" id="about">
         <div class="about-card scroll-reveal">
@@ -231,16 +266,17 @@
     </div>
 
     <div class="section-container" id="work">
+        <h2 class="gallery-title scroll-reveal">SOME OF MY EDITS</h2>
         <div class="gallery-grid">
-            <div class="video-card scroll-reveal">
+            <a href="https://youtu.be/w52vyHk8p8k" target="_blank" class="video-card scroll-reveal">
                 <img src="edit1.jpg" onerror="this.src='https://placehold.co/600x400/1a1a1a/a020f0?text=Edit+1'">
-            </div>
-            <div class="video-card scroll-reveal">
+            </a>
+            <a href="https://youtu.be/cN22fXTyGI4" target="_blank" class="video-card scroll-reveal">
                 <img src="edit2.jpg" onerror="this.src='https://placehold.co/600x400/1a1a1a/ff0000?text=Edit+2'">
-            </div>
-            <div class="video-card scroll-reveal">
+            </a>
+            <a href="https://youtu.be/xnTLzKKvElg" target="_blank" class="video-card scroll-reveal">
                 <img src="edit3.jpg" onerror="this.src='https://placehold.co/600x400/1a1a1a/0088ff?text=Edit+3'">
-            </div>
+            </a>
         </div>
     </div>
 
@@ -266,9 +302,11 @@
             mouse3D.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1, 0.5);
         });
 
+        // LIQUID SMOOTH CURSOR ANIMATION
         function animateCursor() {
-            cursorX += (mouseX - cursorX) * 0.11;
-            cursorY += (mouseY - cursorY) * 0.11;
+            const lerpSpeed = 0.15; // The "Golden Ratio" for smoothness
+            cursorX += (mouseX - cursorX) * lerpSpeed;
+            cursorY += (mouseY - cursorY) * lerpSpeed;
             cursor.style.transform = `translate3d(${cursorX - 15}px, ${cursorY - 15}px, 0)`;
             requestAnimationFrame(animateCursor);
         }
@@ -300,18 +338,24 @@
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        const updateSceneSize = () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.position.z = window.innerWidth < 768 ? 12 : 7.5; 
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
+        updateSceneSize();
+        
         document.getElementById('canvas-container').appendChild(renderer.domElement);
-        camera.position.z = 7.5; 
+        window.addEventListener('resize', updateSceneSize);
 
-        // Glowing Sun
         const glowMap = createGlowTexture();
         const sunGeo = new THREE.IcosahedronGeometry(2.4, 15); 
         const sunMat = new THREE.PointsMaterial({ color: 0xa020f0, size: 0.14, map: glowMap, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
         const sun = new THREE.Points(sunGeo, sunMat);
         scene.add(sun);
 
-        // Minimal Wireframe Sun (Hidden by default)
         const wireGeo = new THREE.IcosahedronGeometry(2.4, 2);
         const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0 });
         const wireSun = new THREE.Mesh(wireGeo, wireMat);
@@ -335,23 +379,16 @@
         let isLocked = false, isMinimal = false; 
         let targetRotY = 0, targetRotX = 0, autoSpinValue = 0;
 
-        // MINIMAL MODE TOGGLE
         function toggleMinimal() {
             isMinimal = !isMinimal;
             document.body.classList.toggle('minimal-active');
             document.getElementById('minState').innerText = isMinimal ? "ON" : "OFF";
-            
-            // Three.js Transitions
             if(isMinimal) {
-                dust.material.opacity = 0;
-                sun.material.opacity = 0;
-                wireSun.material.opacity = 0.2;
+                dust.material.opacity = 0; sun.material.opacity = 0; wireSun.material.opacity = 0.2;
                 document.documentElement.style.setProperty('--theme-color', '#ffffff');
                 document.documentElement.style.setProperty('--bg-color', '#050505');
             } else {
-                dust.material.opacity = 0.75;
-                sun.material.opacity = 0.9;
-                wireSun.material.opacity = 0;
+                dust.material.opacity = 0.75; sun.material.opacity = 0.9; wireSun.material.opacity = 0;
             }
         }
 
@@ -384,12 +421,9 @@
             requestAnimationFrame(animate);
             autoSpinValue += 0.0027; 
             const followSpeed = 0.022;
-            
-            // Apply rotations to both suns
             sun.rotation.y = autoSpinValue + (targetRotY * 1.2);
             sun.rotation.x += ( (targetRotX * 1.2) - sun.rotation.x) * followSpeed;
-            wireSun.rotation.y = sun.rotation.y;
-            wireSun.rotation.x = sun.rotation.x;
+            wireSun.rotation.copy(sun.rotation);
             
             if(!isMinimal) {
                 const pos = dust.geometry.attributes.position.array;
@@ -418,7 +452,6 @@
             renderer.render(scene, camera);
         }
         animate();
-        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
     </script>
 </body>
 </html>
