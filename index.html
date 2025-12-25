@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>SHREYAS DODDAMANI | Infinity Engine V63</title>
+    <title>SHREYAS DODDAMANI | Infinity Engine V67</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -11,7 +11,6 @@
            1. CORE ARCHITECTURE
            ========================================= */
         :root {
-            /* These are defaults. JS overrides them in Infinity Mode. */
             --theme-color: #ffffff; 
             --bg-color: #050505;
             --cursor-size: 30px;
@@ -31,7 +30,7 @@
             color: var(--theme-color); 
             font-family: 'Syne', sans-serif;
             overflow-x: hidden;
-            /* Base State: All smooth */
+            /* Base State: Smooth transitions */
             transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
                         color 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
                         border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -39,20 +38,13 @@
         }
 
         /* =========================================
-           2. INFINITY MODE (THE FINAL FIX)
+           2. INFINITY MODE (HYBRID SYNC)
            ========================================= */
         body.infinity-active {
-            /* CRITICAL: NO VARIABLE DECLARATIONS HERE.
-               We let the JS on :root control the colors.
-               We only change the transition timing here.
-            */
             transition: background-color 0.8s ease, color 0s linear, border-color 0s linear !important;
         }
 
-        /* THE HYBRID RULE: 
-           Color/Border = Instant (Syncs with sphere).
-           Transform/Shadow = Smooth (Premium Hover).
-        */
+        /* HYBRID SYNC: Instant Color, Smooth Hover */
         body.infinity-active h1, 
         body.infinity-active .gallery-title {
             transition: color 0s linear, text-shadow 0.3s ease !important;
@@ -70,7 +62,7 @@
         }
 
         /* =========================================
-           3. UI ANIMATIONS & EFFECTS
+           3. UI ANIMATIONS
            ========================================= */
         #flash-effect {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -206,7 +198,6 @@
         .video-card {
             height: 220px; border: 1px solid var(--theme-color); border-radius: 4px; overflow: hidden;
             background: #000; opacity: 0; transform: translateY(50px); 
-            /* Default Smoothness */
             transition: transform 0.5s ease, box-shadow 0.5s ease, border-color 0.8s ease; 
             display: block;
         }
@@ -348,11 +339,18 @@
         }
         const glowMap = createGlowTexture();
 
+        // --- RESTORED: THE WIREFRAME (DEFAULT) ---
         const wireSun = new THREE.Mesh(
             new THREE.IcosahedronGeometry(2.4, 2), 
             new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.2 })
         );
         scene.add(wireSun);
+
+        // --- THE PURE DOT GALAXY (INFINITY) ---
+        const sunGeo = new THREE.IcosahedronGeometry(2.4, 15);
+        const sunMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.14, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+        const sun = new THREE.Points(sunGeo, sunMat);
+        scene.add(sun);
 
         const dustCount = 35000; 
         const dustGeo = new THREE.BufferGeometry();
@@ -368,16 +366,22 @@
         const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.22, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending }));
         scene.add(dust);
 
-        // --- 4. INFINITY LOGIC ---
+        // --- COLORS: PURPLE / RED / BLUE (8 Shades) ---
         const spectrum = [
-            new THREE.Color('#a020f0'), new THREE.Color('#ff00ff'), new THREE.Color('#ff0000'),
-            new THREE.Color('#ff4500'), new THREE.Color('#00ffa3'), // Emerald
-            new THREE.Color('#00ffff'), new THREE.Color('#0000ff'), new THREE.Color('#4b0082')
+            new THREE.Color('#a020f0'), // Purple
+            new THREE.Color('#d000ff'), // Violet
+            new THREE.Color('#ff0055'), // Red-Pink
+            new THREE.Color('#ff0000'), // Pure Red
+            new THREE.Color('#5500ff'), // Blurple
+            new THREE.Color('#0000ff'), // Blue
+            new THREE.Color('#00aaff'), // Cyan
+            new THREE.Color('#a020f0')  // Back to Purple
         ];
         const bgSpectrum = [
-            new THREE.Color('#020005'), new THREE.Color('#050005'), new THREE.Color('#050000'),
-            new THREE.Color('#050200'), new THREE.Color('#000502'), new THREE.Color('#000505'),
-            new THREE.Color('#000005'), new THREE.Color('#020005')
+            new THREE.Color('#020005'), new THREE.Color('#030005'),
+            new THREE.Color('#050002'), new THREE.Color('#050000'),
+            new THREE.Color('#020005'), new THREE.Color('#000005'),
+            new THREE.Color('#000205'), new THREE.Color('#020005')
         ];
 
         function updateHUD() {
@@ -386,7 +390,7 @@
                 hud.innerHTML = `<div class="inst-item"><b>INFINITY</b> Double click for infinity mode.</div>`;
             } else {
                 hud.innerHTML = `
-                    <div class="inst-item"><b>SPECTRUM</b> Rotate to change colors.</div>
+                    <div class="inst-item"><b>SPECTRUM</b> Move cursor to change color.</div>
                     <div class="inst-item"><b>COMMAND</b> Click to lock color.</div>
                     <div class="inst-item"><b>SHIFT</b> Double click to transform.</div>`;
             }
@@ -399,14 +403,20 @@
             const flash = document.getElementById('flash-effect');
             flash.classList.add('flashing'); setTimeout(() => flash.classList.remove('flashing'), 500);
 
-            isInfinity = !isInfinity; isLocked = false;
+            isInfinity = !isInfinity;
+            isLocked = false;
             document.body.classList.toggle('infinity-active');
             
             if(isInfinity) {
-                dust.material.opacity = 0.75; wireSun.material.opacity = 0.8;
+                dust.material.opacity = 0.75; 
+                sun.material.opacity = 0.9; // SHOW DOTS
+                wireSun.material.opacity = 0; // HIDE LINES
                 syncEngine(lastXpct); 
             } else {
-                dust.material.opacity = 0; wireSun.material.opacity = 0.2; wireSun.material.color.set(0xffffff);
+                dust.material.opacity = 0; 
+                sun.material.opacity = 0; // HIDE DOTS
+                wireSun.material.opacity = 0.2; // SHOW LINES
+                wireSun.material.color.set(0xffffff);
                 document.documentElement.style.setProperty('--theme-color', '#ffffff');
                 document.documentElement.style.setProperty('--bg-color', '#050505');
             }
@@ -418,7 +428,6 @@
             toggleInfinity();
         });
 
-        // --- 5. THE COSMIC SYNC ENGINE ---
         function syncEngine(xPct) {
             if (!isInfinity || isLocked) return;
             
@@ -433,10 +442,9 @@
             let bgCol = new THREE.Color();
             bgCol.lerpColors(bgSpectrum[index], bgSpectrum[index + 1], innerPct);
 
-            wireSun.material.color.copy(mainCol); 
+            sun.material.color.copy(mainCol); 
             dust.material.color.copy(mainCol);
             
-            // Force CSS Update
             document.documentElement.style.setProperty('--theme-color', `#${mainCol.getHexString()}`);
             document.documentElement.style.setProperty('--bg-color', `#${bgCol.getHexString()}`);
         }
@@ -449,7 +457,7 @@
         });
 
         window.addEventListener('click', (e) => { 
-            if (window.getSelection().toString().length > 0 || e.target.closest('.profile-menu-btn') || e.target.closest('a')) return;
+            if (window.getSelection().toString().length > 0 || e.target.closest('.profile-menu-btn') || e.target.closest('.menu-link') || e.target.closest('a')) return;
             if(isInfinity) isLocked = !isLocked; 
         });
 
@@ -460,6 +468,9 @@
             wireSun.rotation.y = autoSpinValue + (rotY * 1.2);
             wireSun.rotation.x += ( (rotX * 1.2) - wireSun.rotation.x) * 0.022;
             
+            // SYNC DOTS TO WIREFRAME
+            sun.rotation.copy(wireSun.rotation);
+
             if(isInfinity) {
                 const pos = dust.geometry.attributes.position.array;
                 const mPos = new THREE.Vector3(mouse3D.x, mouse3D.y, 0.5).unproject(camera);
