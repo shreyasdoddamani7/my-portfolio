@@ -3,36 +3,26 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>SHREYAS DODDAMANI | Portfolio V32</title>
+    <title>SHREYAS DODDAMANI | Infinity Engine V63</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
     
     <style>
+        /* =========================================
+           1. CORE ARCHITECTURE
+           ========================================= */
         :root {
-            --theme-color: #a020f0; 
-            --bg-color: #020005;
+            /* These are defaults. JS overrides them in Infinity Mode. */
+            --theme-color: #ffffff; 
+            --bg-color: #050505;
             --cursor-size: 30px;
         }
 
+        * { cursor: none !important; }
+
         html {
             scroll-behavior: smooth;
-            cursor: none; 
-        }
-
-        body.minimal-active {
-            --theme-color: #ffffff !important;
-            --bg-color: #050505 !important;
-        }
-
-        body.minimal-active h1, 
-        body.minimal-active .back-to-top,
-        body.minimal-active .about-card,
-        body.minimal-active .hud-instructions {
-            text-shadow: none !important;
-            box-shadow: none !important;
-        }
-
-        a, button, .profile-menu-btn, .menu-link, .back-to-top, .video-card {
-            cursor: none !important;
+            overflow-x: hidden;
+            background-color: var(--bg-color);
         }
 
         body {
@@ -41,22 +31,64 @@
             color: var(--theme-color); 
             font-family: 'Syne', sans-serif;
             overflow-x: hidden;
-            transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            /* Base State: All smooth */
+            transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                        color 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                        border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: text;
         }
 
-        /* --- CUSTOM BOLT CURSOR (FIXED SMOOTHNESS) --- */
+        /* =========================================
+           2. INFINITY MODE (THE FINAL FIX)
+           ========================================= */
+        body.infinity-active {
+            /* CRITICAL: NO VARIABLE DECLARATIONS HERE.
+               We let the JS on :root control the colors.
+               We only change the transition timing here.
+            */
+            transition: background-color 0.8s ease, color 0s linear, border-color 0s linear !important;
+        }
+
+        /* THE HYBRID RULE: 
+           Color/Border = Instant (Syncs with sphere).
+           Transform/Shadow = Smooth (Premium Hover).
+        */
+        body.infinity-active h1, 
+        body.infinity-active .gallery-title {
+            transition: color 0s linear, text-shadow 0.3s ease !important;
+            text-shadow: 0 0 40px var(--theme-color);
+        }
+
+        body.infinity-active .profile-menu-btn,
+        body.infinity-active .video-card {
+            transition: border-color 0s linear, transform 0.3s ease, box-shadow 0.3s ease !important;
+        }
+
+        body.infinity-active .social-icon, 
+        body.infinity-active .menu-link {
+            transition: color 0s linear, transform 0.3s ease, text-shadow 0.3s ease !important;
+        }
+
+        /* =========================================
+           3. UI ANIMATIONS & EFFECTS
+           ========================================= */
+        #flash-effect {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: white; z-index: 10000; pointer-events: none; opacity: 0;
+        }
+        .flashing { animation: flashAnim 0.5s ease-out forwards; }
+        @keyframes flashAnim { 0% { opacity: 0; } 10% { opacity: 1; } 100% { opacity: 0; } }
+
+        @keyframes revealUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           4. CURSOR & HUD
+           ========================================= */
         .custom-cursor {
-            position: fixed;
-            top: 0; left: 0;
-            width: var(--cursor-size);
-            height: var(--cursor-size);
-            pointer-events: none;
-            z-index: 9999;
-            mix-blend-mode: difference;
-            /* REMOVED CSS TRANSITION TO FIX JITTER */
+            position: fixed; top: 0; left: 0; width: var(--cursor-size); height: var(--cursor-size);
+            pointer-events: none; z-index: 9999; mix-blend-mode: difference;
         }
-
-        @media (pointer: coarse) { .custom-cursor { display: none; } html { cursor: auto; } }
+        @media (pointer: coarse) { .custom-cursor { display: none; } * { cursor: auto !important; } }
 
         .cursor-bolt {
             width: 100%; height: 100%;
@@ -65,7 +97,6 @@
             filter: drop-shadow(0 0 10px var(--theme-color));
         }
 
-        /* --- STICKY HUD --- */
         .sticky-hud {
             position: fixed; top: 0; left: 0; width: 100%;
             padding: 20px 40px; box-sizing: border-box;
@@ -75,22 +106,44 @@
 
         .back-to-top {
             pointer-events: auto; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 2px; cursor: pointer; opacity: 0;
-            transform: translateY(-20px); transition: all 0.4s ease;
-            text-decoration: none; color: var(--theme-color);
+            letter-spacing: 2px; opacity: 0; transform: translateY(-20px); 
+            transition: all 0.4s ease; text-decoration: none; color: var(--theme-color);
         }
-
         .back-to-top.visible { opacity: 1; transform: translateY(0); }
 
         .profile-menu-btn {
             pointer-events: auto; width: 50px; height: 50px;
             border-radius: 50%; overflow: hidden; cursor: pointer;
             border: 2px solid var(--theme-color);
-            transition: transform 0.3s, box-shadow 0.3s, border-color 0.2s linear;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-
+        .profile-menu-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--theme-color); }
         .profile-menu-btn img { width: 100%; height: 100%; object-fit: cover; }
 
+        .portfolio-tag {
+            position: absolute; top: 40px; left: 40px;
+            font-weight: 800; font-size: 0.7rem; letter-spacing: 5px;
+            text-transform: uppercase; opacity: 0.6; z-index: 10;
+        }
+
+        .hud-instructions {
+            position: absolute; top: 80%; right: 25px; 
+            transform: translateY(-50%); display: flex; flex-direction: column; gap: 22px;
+            border-right: 2px solid var(--theme-color); padding-right: 20px; text-align: right;
+            z-index: 10; opacity: 0.8; transition: 0.5s ease; pointer-events: none;
+        }
+        @media (max-width: 768px) {
+            .hud-instructions {
+                top: auto; bottom: 30px; left: 20px; right: auto;
+                text-align: left; border-right: none; border-left: 2px solid var(--theme-color); padding-left: 15px;
+            }
+        }
+        .inst-item { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; line-height: 1.4; font-weight: 700; }
+        .inst-item b { color: #fff; display: block; margin-bottom: 4px; font-size: 1rem; font-weight: 800; }
+
+        /* =========================================
+           5. MENU
+           ========================================= */
         .menu-drawer {
             position: fixed; top: 80px; right: 40px; width: 280px;
             background: rgba(0,0,0,0.9); backdrop-filter: blur(20px);
@@ -100,87 +153,37 @@
             transform: translateY(-20px) scale(0.95);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         .menu-drawer.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+        .menu-link { text-decoration: none; color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
+        .menu-link:hover { color: var(--theme-color); padding-left: 10px; text-shadow: 0 0 10px var(--theme-color); }
 
-        .menu-link {
-            text-decoration: none; color: white; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 2px;
-            transition: color 0.3s, padding-left 0.3s; cursor: pointer;
-        }
-        .menu-link:hover { color: var(--theme-color); padding-left: 10px; }
-
-        .minimal-toggle-btn {
-            margin-top: 10px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.7rem; color: var(--theme-color); opacity: 0.8;
-        }
-
-        .portfolio-tag {
-            position: absolute; top: 40px; left: 40px;
-            font-weight: 800; font-size: 0.7rem; letter-spacing: 5px;
-            text-transform: uppercase; opacity: 0.6; z-index: 10;
-        }
-
-        .hud-instructions {
-            position: absolute; 
-            top: 80%; right: 25px; 
-            transform: translateY(-50%);
-            display: flex; flex-direction: column; gap: 30px;
-            border-right: 2px solid var(--theme-color);
-            padding-right: 20px; text-align: right;
-            z-index: 10; opacity: 0.8;
-            pointer-events: none;
-        }
-
-        @media (max-width: 768px) {
-            .hud-instructions {
-                top: auto; bottom: 30px; left: 20px; right: auto;
-                text-align: left; border-right: none; border-left: 2px solid var(--theme-color);
-                padding-left: 15px;
-            }
-        }
-
-        .inst-item { font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase; line-height: 1.6; font-weight: 700; }
-        .inst-item b { color: #fff; display: block; margin-bottom: 6px; font-size: 1.15rem; font-weight: 800; }
-
+        /* =========================================
+           6. CONTENT SECTIONS
+           ========================================= */
         #canvas-container {
-            position: fixed; 
-            top: 18%; 
-            left: 0; width: 100vw; height: 100vh;
-            z-index: 1; pointer-events: none;
-            will-change: opacity, transform;
+            position: fixed; top: 18%; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; pointer-events: none; will-change: opacity, transform;
         }
 
-        .header {
-            height: 100vh; display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-start;
-            position: relative; z-index: 10;
-        }
+        .header { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; z-index: 10; }
 
         h1 {
-            margin-top: 60px;
-            font-weight: 800; 
-            font-size: clamp(2rem, 8vw, 5rem); 
+            margin-top: 60px; font-weight: 800; font-size: clamp(2rem, 8vw, 5rem); 
             letter-spacing: 1.5vw; text-transform: uppercase;
-            color: var(--theme-color); text-shadow: 0 0 40px var(--theme-color);
-            transition: color 0.2s linear, text-shadow 0.2s linear;
-            text-align: center; width: 100%; padding: 0 20px;
-            box-sizing: border-box; opacity: 0;
+            color: var(--theme-color); text-shadow: none;
+            transition: color 0.1s linear, text-shadow 0.3s ease;
+            text-align: center; width: 100%; padding: 0 20px; box-sizing: border-box; opacity: 0;
             animation: revealUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
         }
 
-        @keyframes revealUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }
-
         .section-container {
             position: relative; z-index: 20; min-height: 100vh;
-            display: flex; flex-direction: column; justify-content: center;
-            align-items: center; padding: 150px 20px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 150px 20px;
             background: linear-gradient(to bottom, transparent 0%, var(--bg-color) 30%);
         }
 
         .about-card {
-            max-width: 800px; text-align: center; line-height: 2.4;
-            font-size: 1.2rem; color: var(--theme-color); 
+            max-width: 800px; text-align: center; line-height: 2.4; font-size: 1.2rem; color: var(--theme-color); 
             background: rgba(0, 0, 0, 0.92); padding: 80px 60px;
             border: 1px solid var(--theme-color); backdrop-filter: blur(40px);
             box-shadow: 0 0 80px rgba(0,0,0,0.9); opacity: 0;
@@ -189,10 +192,9 @@
         .about-card.visible { opacity: 1; transform: translateY(0); }
 
         .gallery-title {
-            font-size: clamp(1.5rem, 4vw, 3rem);
-            font-weight: 800; letter-spacing: 15px; text-transform: uppercase;
-            margin-bottom: 50px; color: var(--theme-color);
-            opacity: 0; transform: translateY(30px); transition: 0.8s ease;
+            font-size: clamp(1.5rem, 4vw, 3rem); font-weight: 800; letter-spacing: 15px; 
+            text-transform: uppercase; margin-bottom: 50px; color: var(--theme-color); 
+            opacity: 0; transform: translateY(30px); transition: 0.8s ease; text-shadow: none;
         }
         .gallery-title.visible { opacity: 1; transform: translateY(0); }
 
@@ -202,32 +204,45 @@
         }
 
         .video-card {
-            height: 220px; border: 1px solid var(--theme-color);
-            border-radius: 4px; overflow: hidden; position: relative;
-            background: #000; opacity: 0; transform: translateY(50px);
-            transition: all 0.5s ease; display: block;
+            height: 220px; border: 1px solid var(--theme-color); border-radius: 4px; overflow: hidden;
+            background: #000; opacity: 0; transform: translateY(50px); 
+            /* Default Smoothness */
+            transition: transform 0.5s ease, box-shadow 0.5s ease, border-color 0.8s ease; 
+            display: block;
         }
         .video-card.visible { opacity: 1; transform: translateY(0); }
+        .video-card:hover { 
+            transform: rotateX(5deg) rotateY(-5deg) scale(1.05) translateY(-10px); 
+            box-shadow: 0 0 50px var(--theme-color); /* SYNCED GLOW */
+            z-index: 5; 
+        }
         .video-card img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) brightness(0.7); transition: 0.5s ease; }
-        .video-card:hover { transform: rotateX(5deg) rotateY(-5deg) scale(1.05) translateY(-10px); box-shadow: 0 0 40px var(--theme-color); z-index: 5; }
         .video-card:hover img { filter: grayscale(0) brightness(1.1); }
 
         .footer {
-            background: var(--bg-color); padding: 100px 20px;
-            display: flex; flex-direction: column; align-items: center; gap: 30px;
+            background: var(--bg-color); padding: 100px 20px; display: flex; flex-direction: column; align-items: center; gap: 30px;
             position: relative; z-index: 30; border-top: 1px solid rgba(255,255,255,0.1);
         }
         .social-links { display: flex; gap: 40px; }
-        .social-icon { color: var(--theme-color); text-decoration: none; font-weight: 800; font-size: 1.2rem; letter-spacing: 2px; transition: 0.3s; }
-        .social-icon:hover { color: white; text-shadow: 0 0 20px var(--theme-color); }
+        .social-icon { 
+            color: var(--theme-color); text-decoration: none; font-weight: 800; 
+            font-size: 1.2rem; letter-spacing: 2px; transition: 0.3s ease; 
+        }
+        .social-icon:hover { 
+            color: #fff; 
+            text-shadow: 0 0 25px var(--theme-color), 0 0 45px var(--theme-color); /* SYNCED GLOW */
+            transform: translateY(-5px);
+        }
+        .copyright { font-size: 0.9rem; opacity: 0.6; letter-spacing: 2px; }
     </style>
 </head>
 <body id="top">
 
+    <div id="flash-effect"></div>
     <div class="custom-cursor"><div class="cursor-bolt"></div></div>
 
     <div class="sticky-hud">
-        <a href="#top" class="back-to-top">Shreyas D.</a>
+        <a href="#top" class="back-to-top">SHREYAS D.</a>
         <div class="profile-menu-btn" onclick="toggleMenu()">
             <img src="me.jpg" onerror="this.src='https://placehold.co/100x100/1a1a1a/a020f0?text=ME'" alt="Profile">
         </div>
@@ -240,18 +255,13 @@
         <a class="menu-link" href="#about" onclick="toggleMenu()">About</a>
         <a class="menu-link" href="#work" onclick="toggleMenu()">Work</a>
         <a class="menu-link" href="#contact" onclick="toggleMenu()">Contact</a>
-        <div class="menu-link minimal-toggle-btn" onclick="toggleMinimal()">MINIMAL MODE: <span id="minState">OFF</span></div>
     </div>
 
     <div id="canvas-container"></div>
 
     <div class="header">
         <h1>SHREYAS DODDAMANI</h1>
-        <div class="hud-instructions">
-            <div class="inst-item"><b>SPECTRUM</b> Rotate sphere for colors.</div>
-            <div class="inst-item"><b>COMMAND</b> Click space to lock.</div>
-            <div class="inst-item"><b>OVERRIDE</b> Toggle via profile menu.</div>
-        </div>
+        <div class="hud-instructions" id="hud"></div>
     </div>
 
     <div class="section-container" id="about">
@@ -293,48 +303,27 @@
 
     <script>
         const cursor = document.querySelector('.custom-cursor');
-        let mouseX = 0, mouseY = 0, cursorX = 0, cursorY = 0;
-        let mouse3D = new THREE.Vector3();
+        let mX = 0, mY = 0, cX = 0, cY = 0, lastXpct = 0.5, mouse3D = new THREE.Vector3();
+        let isInfinity = false, isLocked = false, autoSpinValue = 0, rotY = 0, rotX = 0;
 
         document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX; mouseY = e.clientY;
+            mX = e.clientX; mY = e.clientY;
             cursor.style.opacity = 1;
+            lastXpct = e.clientX / window.innerWidth;
             mouse3D.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1, 0.5);
         });
 
-        // LIQUID SMOOTH CURSOR ANIMATION
         function animateCursor() {
-            const lerpSpeed = 0.15; // The "Golden Ratio" for smoothness
-            cursorX += (mouseX - cursorX) * lerpSpeed;
-            cursorY += (mouseY - cursorY) * lerpSpeed;
-            cursor.style.transform = `translate3d(${cursorX - 15}px, ${cursorY - 15}px, 0)`;
+            const lerpSpeed = 0.15;
+            cX += (mX - cX) * lerpSpeed;
+            cY += (mY - cY) * lerpSpeed;
+            cursor.style.transform = `translate3d(${cX - 15}px, ${cY - 15}px, 0)`;
             requestAnimationFrame(animateCursor);
         }
         animateCursor();
 
         function toggleMenu() { document.getElementById('menuDrawer').classList.toggle('open'); }
 
-        window.addEventListener('scroll', () => {
-            const scrollVal = window.scrollY;
-            const windowHeight = window.innerHeight;
-            document.querySelector('.back-to-top').classList.toggle('visible', scrollVal > 300);
-            const containerFade = document.getElementById('canvas-container');
-            containerFade.style.opacity = Math.max(0, 1 - (scrollVal / (windowHeight * 1.2)));
-            containerFade.style.transform = `translateY(${-scrollVal * 0.2}px)`;
-            document.querySelectorAll('.scroll-reveal').forEach(el => {
-                if (el.getBoundingClientRect().top < windowHeight * 0.85) el.classList.add('visible');
-            });
-        });
-
-        function createGlowTexture() {
-            const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
-            const context = canvas.getContext('2d');
-            const grad = context.createRadialGradient(64, 64, 0, 64, 64, 64);
-            grad.addColorStop(0, 'white'); grad.addColorStop(0.3, 'rgba(255,255,255,0.7)'); grad.addColorStop(1, 'transparent');
-            context.fillStyle = grad; context.fillRect(0,0,128,128);
-            return new THREE.CanvasTexture(canvas);
-        }
-        
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -346,104 +335,146 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
         updateSceneSize();
-        
         document.getElementById('canvas-container').appendChild(renderer.domElement);
         window.addEventListener('resize', updateSceneSize);
 
+        function createGlowTexture() {
+            const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
+            const context = canvas.getContext('2d');
+            const grad = context.createRadialGradient(64, 64, 0, 64, 64, 64);
+            grad.addColorStop(0, 'white'); grad.addColorStop(0.3, 'rgba(255,255,255,0.7)'); grad.addColorStop(1, 'transparent');
+            context.fillStyle = grad; context.fillRect(0,0,128,128);
+            return new THREE.CanvasTexture(canvas);
+        }
         const glowMap = createGlowTexture();
-        const sunGeo = new THREE.IcosahedronGeometry(2.4, 15); 
-        const sunMat = new THREE.PointsMaterial({ color: 0xa020f0, size: 0.14, map: glowMap, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
-        const sun = new THREE.Points(sunGeo, sunMat);
-        scene.add(sun);
 
-        const wireGeo = new THREE.IcosahedronGeometry(2.4, 2);
-        const wireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0 });
-        const wireSun = new THREE.Mesh(wireGeo, wireMat);
+        const wireSun = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(2.4, 2), 
+            new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.2 })
+        );
         scene.add(wireSun);
 
-        const dustCount = 20000;
+        const dustCount = 35000; 
         const dustGeo = new THREE.BufferGeometry();
         const dustPos = new Float32Array(dustCount * 3);
         const originalPos = new Float32Array(dustCount * 3);
+        
         for (let i = 0; i < dustCount; i++) {
-            const x = (Math.random() - 0.5) * 70, y = (Math.random() - 0.5) * 70, z = (Math.random() - 0.5) * 70;
-            dustPos[i*3] = x; dustPos[i*3+1] = y; dustPos[i*3+2] = z;
-            originalPos[i*3] = x; originalPos[i*3+1] = y; originalPos[i*3+2] = z;
+            const x = (Math.random()-0.5)*80, y = (Math.random()-0.5)*80, z = (Math.random()-0.5)*80;
+            dustPos[i*3]=x; dustPos[i*3+1]=y; dustPos[i*3+2]=z; 
+            originalPos[i*3]=x; originalPos[i*3+1]=y; originalPos[i*3+2]=z;
         }
         dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
-        const dustMat = new THREE.PointsMaterial({ color: 0xa020f0, size: 0.22, map: glowMap, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending });
-        const dust = new THREE.Points(dustGeo, dustMat);
+        const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.22, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending }));
         scene.add(dust);
 
-        const colors = { p: new THREE.Color('#a020f0'), r: new THREE.Color('#ff0000'), b: new THREE.Color('#0088ff'), bgP: new THREE.Color('#020005'), bgR: new THREE.Color('#0a0000'), bgB: new THREE.Color('#00000a') };
-        let isLocked = false, isMinimal = false; 
-        let targetRotY = 0, targetRotX = 0, autoSpinValue = 0;
+        // --- 4. INFINITY LOGIC ---
+        const spectrum = [
+            new THREE.Color('#a020f0'), new THREE.Color('#ff00ff'), new THREE.Color('#ff0000'),
+            new THREE.Color('#ff4500'), new THREE.Color('#00ffa3'), // Emerald
+            new THREE.Color('#00ffff'), new THREE.Color('#0000ff'), new THREE.Color('#4b0082')
+        ];
+        const bgSpectrum = [
+            new THREE.Color('#020005'), new THREE.Color('#050005'), new THREE.Color('#050000'),
+            new THREE.Color('#050200'), new THREE.Color('#000502'), new THREE.Color('#000505'),
+            new THREE.Color('#000005'), new THREE.Color('#020005')
+        ];
 
-        function toggleMinimal() {
-            isMinimal = !isMinimal;
-            document.body.classList.toggle('minimal-active');
-            document.getElementById('minState').innerText = isMinimal ? "ON" : "OFF";
-            if(isMinimal) {
-                dust.material.opacity = 0; sun.material.opacity = 0; wireSun.material.opacity = 0.2;
+        function updateHUD() {
+            const hud = document.getElementById('hud');
+            if(!isInfinity) {
+                hud.innerHTML = `<div class="inst-item"><b>INFINITY</b> Double click for infinity mode.</div>`;
+            } else {
+                hud.innerHTML = `
+                    <div class="inst-item"><b>SPECTRUM</b> Rotate to change colors.</div>
+                    <div class="inst-item"><b>COMMAND</b> Click to lock color.</div>
+                    <div class="inst-item"><b>SHIFT</b> Double click to transform.</div>`;
+            }
+        }
+        updateHUD();
+
+        function toggleInfinity() {
+            if (window.getSelection) { window.getSelection().removeAllRanges(); }
+
+            const flash = document.getElementById('flash-effect');
+            flash.classList.add('flashing'); setTimeout(() => flash.classList.remove('flashing'), 500);
+
+            isInfinity = !isInfinity; isLocked = false;
+            document.body.classList.toggle('infinity-active');
+            
+            if(isInfinity) {
+                dust.material.opacity = 0.75; wireSun.material.opacity = 0.8;
+                syncEngine(lastXpct); 
+            } else {
+                dust.material.opacity = 0; wireSun.material.opacity = 0.2; wireSun.material.color.set(0xffffff);
                 document.documentElement.style.setProperty('--theme-color', '#ffffff');
                 document.documentElement.style.setProperty('--bg-color', '#050505');
-            } else {
-                dust.material.opacity = 0.75; sun.material.opacity = 0.9; wireSun.material.opacity = 0;
             }
+            updateHUD();
+        }
+
+        window.addEventListener('dblclick', (e) => {
+            if(e.target.closest('.profile-menu-btn') || e.target.closest('.menu-link') || e.target.closest('a')) return;
+            toggleInfinity();
+        });
+
+        // --- 5. THE COSMIC SYNC ENGINE ---
+        function syncEngine(xPct) {
+            if (!isInfinity || isLocked) return;
+            
+            const safePct = Math.min(Math.max(xPct, 0), 0.9999);
+            const segment = safePct * (spectrum.length - 1);
+            const index = Math.floor(segment);
+            const innerPct = segment - index;
+            
+            let mainCol = new THREE.Color();
+            mainCol.lerpColors(spectrum[index], spectrum[index + 1], innerPct);
+            
+            let bgCol = new THREE.Color();
+            bgCol.lerpColors(bgSpectrum[index], bgSpectrum[index + 1], innerPct);
+
+            wireSun.material.color.copy(mainCol); 
+            dust.material.color.copy(mainCol);
+            
+            // Force CSS Update
+            document.documentElement.style.setProperty('--theme-color', `#${mainCol.getHexString()}`);
+            document.documentElement.style.setProperty('--bg-color', `#${bgCol.getHexString()}`);
         }
 
         window.addEventListener('mousemove', (e) => {
             const xPct = e.clientX / window.innerWidth;
-            targetRotY = (xPct - 0.5) * 1.5; targetRotX = (e.clientY / window.innerHeight - 0.5) * 1.5;
-            if (!isLocked && !isMinimal) {
-                let main = new THREE.Color();
-                if (xPct < 0.5) main.lerpColors(colors.p, colors.r, xPct * 2); 
-                else main.lerpColors(colors.r, colors.b, (xPct - 0.5) * 2);
-                updateTheme(main, xPct);
-            }
+            rotY = (xPct - 0.5) * 1.5; 
+            rotX = (e.clientY / window.innerHeight - 0.5) * 1.5;
+            syncEngine(xPct);
         });
 
-        function updateTheme(mainCol, xPct) {
-            sun.material.color.copy(mainCol); dust.material.color.copy(mainCol);
-            let bg = new THREE.Color();
-            if (xPct < 0.5) bg.lerpColors(colors.bgP, colors.bgR, xPct * 2); 
-            else bg.lerpColors(colors.bgR, colors.bgB, (xPct - 0.5) * 2);
-            document.documentElement.style.setProperty('--theme-color', `#${mainCol.getHexString()}`);
-            document.documentElement.style.setProperty('--bg-color', `#${bg.getHexString()}`);
-        }
-
         window.addEventListener('click', (e) => { 
-            if(e.target.closest('.profile-menu-btn') || e.target.closest('.menu-link') || e.target.closest('a') || e.target.closest('button')) return;
-            if(!isMinimal) isLocked = !isLocked; 
+            if (window.getSelection().toString().length > 0 || e.target.closest('.profile-menu-btn') || e.target.closest('a')) return;
+            if(isInfinity) isLocked = !isLocked; 
         });
 
         function animate() {
             requestAnimationFrame(animate);
             autoSpinValue += 0.0027; 
-            const followSpeed = 0.022;
-            sun.rotation.y = autoSpinValue + (targetRotY * 1.2);
-            sun.rotation.x += ( (targetRotX * 1.2) - sun.rotation.x) * followSpeed;
-            wireSun.rotation.copy(sun.rotation);
             
-            if(!isMinimal) {
+            wireSun.rotation.y = autoSpinValue + (rotY * 1.2);
+            wireSun.rotation.x += ( (rotX * 1.2) - wireSun.rotation.x) * 0.022;
+            
+            if(isInfinity) {
                 const pos = dust.geometry.attributes.position.array;
-                const mPos = new THREE.Vector3(mouse3D.x, mouse3D.y, 0.5);
-                mPos.unproject(camera);
+                const mPos = new THREE.Vector3(mouse3D.x, mouse3D.y, 0.5).unproject(camera);
                 const dir = mPos.sub(camera.position).normalize();
-                const distPl = -camera.position.z / dir.z;
-                const finalMPos = camera.position.clone().add(dir.multiplyScalar(distPl));
-
+                const dPl = -camera.position.z / dir.z, finalMPos = camera.position.clone().add(dir.multiplyScalar(dPl));
+                
                 for(let i=0; i<dustCount; i++) {
-                    const ix = i*3, iy = i*3+1, iz = i*3+2;
-                    const dx = pos[ix] - finalMPos.x, dy = pos[iy] - finalMPos.y, dz = pos[iz] - finalMPos.z;
-                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                    if(dist < 4.5) {
-                        const force = (4.5 - dist) / 4.5;
-                        pos[ix] += dx * force * 0.18; pos[iy] += dy * force * 0.18; pos[iz] += dz * force * 0.18;
-                    } else {
-                        pos[ix] += (originalPos[ix] - pos[ix]) * 0.025;
-                        pos[iy] += (originalPos[iy] - pos[iy]) * 0.025;
-                        pos[iz] += (originalPos[iz] - pos[iz]) * 0.025;
+                    const ix=i*3, iy=i*3+1, iz=i*3+2;
+                    const dx=pos[ix]-finalMPos.x, dy=pos[iy]-finalMPos.y, dz=pos[iz]-finalMPos.z;
+                    const d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+                    if(d<5.5) { const f=(5.5-d)/5.5; pos[ix]+=dx*f*0.18; pos[iy]+=dy*f*0.18; pos[iz]+=dz*f*0.18; }
+                    else { 
+                        pos[ix]+=(originalPos[ix]-pos[ix])*0.025; 
+                        pos[iy]+=(originalPos[iy]-pos[iy])*0.025; 
+                        pos[iz]+=(originalPos[iz]-pos[iz])*0.025; 
                     }
                 }
                 dust.geometry.attributes.position.needsUpdate = true;
@@ -452,6 +483,19 @@
             renderer.render(scene, camera);
         }
         animate();
+
+        window.addEventListener('scroll', () => {
+            const v = window.scrollY, h = window.innerHeight;
+            const c = document.getElementById('canvas-container');
+            c.style.opacity = Math.max(0, 1 - (v / (h * 0.8)));
+            c.style.transform = `translateY(${-v * 0.3}px)`;
+            
+            document.querySelector('.back-to-top').classList.toggle('visible', v > 300);
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                if (el.getBoundingClientRect().top < h * 0.85) el.classList.add('visible');
+            });
+        });
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
     </script>
 </body>
 </html>
