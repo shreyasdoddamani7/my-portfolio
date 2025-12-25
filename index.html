@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>SHREYAS DODDAMANI | Infinity Engine V71</title>
+    <title>SHREYAS DODDAMANI | Infinity Engine V73</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -16,8 +16,10 @@
             --cursor-size: 30px;
         }
 
-        /* Desktops: Hide cursor | Mobile: Normal */
-        @media (pointer: fine) { * { cursor: none !important; } }
+        @media (pointer: fine) { 
+            body { cursor: auto; } 
+            body.infinity-active, body.infinity-active * { cursor: none !important; }
+        }
 
         html {
             scroll-behavior: smooth;
@@ -39,13 +41,12 @@
         }
 
         /* =========================================
-           2. INFINITY MODE (SYNC ENGINE)
+           2. INFINITY MODE (SYNC)
            ========================================= */
         body.infinity-active {
             transition: background-color 0.8s ease, color 0s linear, border-color 0s linear !important;
         }
 
-        /* THE HYBRID FIX: Instant color, buttery movement */
         body.infinity-active h1, 
         body.infinity-active .gallery-title {
             transition: color 0s linear, text-shadow 0.3s ease !important;
@@ -79,8 +80,9 @@
         .custom-cursor {
             position: fixed; top: 0; left: 0; width: var(--cursor-size); height: var(--cursor-size);
             pointer-events: none; z-index: 9999; mix-blend-mode: difference;
+            opacity: 0; transition: opacity 0.3s ease;
         }
-        @media (pointer: coarse) { .custom-cursor { display: none; } }
+        body.infinity-active .custom-cursor { opacity: 1; }
 
         .cursor-bolt {
             width: 100%; height: 100%;
@@ -123,6 +125,7 @@
             transform: translateY(-50%); display: flex; flex-direction: column; gap: 22px;
             border-right: 2px solid var(--theme-color); padding-right: 20px; text-align: right;
             z-index: 10; opacity: 0.8; transition: 0.5s ease; pointer-events: none;
+            user-select: none !important; /* HUD PROTECTION FIXED */
         }
         @media (max-width: 768px) {
             .hud-instructions {
@@ -130,7 +133,7 @@
                 text-align: left; border-right: none; border-left: 2px solid var(--theme-color); padding-left: 15px;
             }
         }
-        .inst-item { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; line-height: 1.4; font-weight: 700; }
+        .inst-item { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; line-height: 1.4; font-weight: 700; user-select: none !important; }
         .inst-item b { color: #fff; display: block; margin-bottom: 4px; font-size: 1rem; font-weight: 800; }
 
         .menu-drawer {
@@ -163,6 +166,7 @@
             transition: color 0.1s linear, text-shadow 0.3s ease;
             text-align: center; width: 100%; padding: 0 20px; box-sizing: border-box; opacity: 0;
             animation: revealUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+            user-select: none !important; /* NAME PROTECTION FIXED */
         }
 
         .section-container {
@@ -291,19 +295,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        // --- 1. CORE VARIABLES ---
+        // --- 1. PERFORMANCE GLOBALS (ZERO-GC PRE-ALLOCATION) ---
         const cursor = document.querySelector('.custom-cursor');
-        let mX = 0, mY = 0, cX = 0, cY = 0, lastXpct = 0.5, mouse3D = new THREE.Vector3();
+        let mX = 0, mY = 0, cX = 0, cY = 0, lastXpct = 0.5;
         let isInfinity = false, isLocked = false, autoSpinValue = 0, rotY = 0, rotX = 0;
         const isMobile = window.innerWidth < 768;
 
-        // --- 2. INPUT HANDLING (FIXED LINK TO ROTATION) ---
+        // Pre-allocate 3D vectors to prevent Chrome Garbage Collection stutters
+        const mouse3D = new THREE.Vector3();
+        const vTemp1 = new THREE.Vector3();
+        const vTemp2 = new THREE.Vector3();
+
+        // --- 2. INPUT HANDLING ---
         const handleInput = (x, y) => {
             mX = x; mY = y;
-            if(!isMobile) cursor.style.opacity = 1;
             lastXpct = x / window.innerWidth;
             mouse3D.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1, 0.5);
-            // DIRECT LINK TO ROTATION
             rotY = (lastXpct - 0.5) * 1.5;
             rotX = (y / window.innerHeight - 0.5) * 1.5;
             syncEngine(lastXpct);
@@ -312,19 +319,24 @@
         document.addEventListener('mousemove', (e) => handleInput(e.clientX, e.clientY));
         document.addEventListener('touchmove', (e) => handleInput(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
 
-        function animateCursor() {
-            cX += (mX - cX) * 0.15; cY += (mY - cY) * 0.15;
+        function animateUI() {
+            cX += (mX - cX) * 0.08; cY += (mY - cY) * 0.08;
             cursor.style.transform = `translate3d(${cX - 15}px, ${cY - 15}px, 0)`;
-            requestAnimationFrame(animateCursor);
+            requestAnimationFrame(animateUI);
         }
-        if(!isMobile) animateCursor();
+        animateUI();
 
         function toggleMenu() { document.getElementById('menuDrawer').classList.toggle('open'); }
 
-        // --- 3. THREE.JS ENGINE ---
+        // --- 3. THREE.JS ENGINE (CHROME OPTIMIZED) ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true, powerPreference: "high-performance" });
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: !isMobile, 
+            alpha: true, 
+            powerPreference: "high-performance",
+            precision: "mediump" // Extra speed for mobile/chrome
+        });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
         const updateSceneSize = () => {
@@ -347,20 +359,17 @@
         }
         const glowMap = createGlowTexture();
 
-        // WIREFRAME (Minimal Mode)
         const wireSun = new THREE.Mesh(
             new THREE.IcosahedronGeometry(2.4, 2), 
             new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.2 })
         );
         scene.add(wireSun);
 
-        // DENSE DOTS (Infinity Mode)
         const sunGeo = new THREE.IcosahedronGeometry(2.4, 15);
         const sunMat = new THREE.PointsMaterial({ color: 0xffffff, size: isMobile ? 0.18 : 0.14, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
         const sun = new THREE.Points(sunGeo, sunMat);
         scene.add(sun);
 
-        // PARTICLES (28k Desktop / 12k Mobile)
         const dustCount = isMobile ? 12000 : 28000; 
         const dustGeo = new THREE.BufferGeometry();
         const dustPos = new Float32Array(dustCount * 3), originalPos = new Float32Array(dustCount * 3);
@@ -369,10 +378,13 @@
             dustPos[i*3]=x; dustPos[i*3+1]=y; dustPos[i*3+2]=z; originalPos[i*3]=x; originalPos[i*3+1]=y; originalPos[i*3+2]=z;
         }
         dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+        // PERFORMANCE: Tell Chrome this attribute is dynamic
+        dustGeo.attributes.position.setUsage(THREE.DynamicDrawUsage);
+        
         const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xffffff, size: isMobile ? 0.28 : 0.22, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending }));
         scene.add(dust);
 
-        // --- 4. INFINITY HUD & LOGIC ---
+        // --- 4. HUD & SPECTRUM ---
         const spectrum = [
             new THREE.Color('#a020f0'), new THREE.Color('#d000ff'), new THREE.Color('#ff0055'),
             new THREE.Color('#ff0000'), new THREE.Color('#5500ff'), new THREE.Color('#0000ff'),
@@ -427,6 +439,7 @@
             const segment = safePct * (spectrum.length - 1);
             const index = Math.floor(segment);
             const innerPct = segment - index;
+            vTemp1.set(0,0,0); // Reusing temp color space
             let mainCol = new THREE.Color(); mainCol.lerpColors(spectrum[index], spectrum[index + 1], innerPct);
             let bgCol = new THREE.Color(); bgCol.lerpColors(bgSpectrum[index], bgSpectrum[index + 1], innerPct);
             sun.material.color.copy(mainCol); dust.material.color.copy(mainCol);
@@ -434,6 +447,7 @@
             document.documentElement.style.setProperty('--bg-color', `#${bgCol.getHexString()}`);
         }
 
+        // --- 5. ANIMATION LOOP (GC OPTIMIZED) ---
         function animate() {
             requestAnimationFrame(animate);
             autoSpinValue += 0.0027; 
@@ -442,16 +456,23 @@
 
             if(isInfinity) {
                 const pos = dust.geometry.attributes.position.array;
-                const mPos = new THREE.Vector3(mouse3D.x, mouse3D.y, 0.5).unproject(camera);
-                const dir = mPos.sub(camera.position).normalize();
-                const dPl = -camera.position.z / dir.z, finalMPos = camera.position.clone().add(dir.multiplyScalar(dPl));
+                // Reuse vectors to keep Chrome smooth
+                vTemp1.copy(mouse3D).unproject(camera);
+                vTemp2.copy(vTemp1).sub(camera.position).normalize();
+                const dPl = -camera.position.z / vTemp2.z;
+                vTemp1.copy(camera.position).add(vTemp2.multiplyScalar(dPl)); // vTemp1 is now finalMPos
+                
                 for(let i=0; i<dustCount; i++) {
-                    const ix=i*3, dx=pos[ix]-finalMPos.x, dy=pos[ix+1]-finalMPos.y, dz=pos[ix+2]-finalMPos.z, d=Math.sqrt(dx*dx+dy*dy+dz*dz);
-                    if(d<5.5) { const f=(5.5-d)/5.5; pos[ix]+=dx*f*0.18; pos[ix+1]+=dy*f*0.18; pos[ix+2]+=dz*f*0.18; }
-                    else { 
+                    const ix=i*3, iy=ix+1, iz=ix+2;
+                    const dx=pos[ix]-vTemp1.x, dy=pos[iy]-vTemp1.y, dz=pos[iz]-vTemp1.z;
+                    const d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+                    if(d<5.5) { 
+                        const f=(5.5-d)/5.5; 
+                        pos[ix]+=dx*f*0.18; pos[iy]+=dy*f*0.18; pos[iz]+=dz*f*0.18; 
+                    } else { 
                         pos[ix]+=(originalPos[ix]-pos[ix])*0.025; 
-                        pos[ix+1]+=(originalPos[ix+1]-pos[ix+1])*0.025; 
-                        pos[ix+2]+=(originalPos[ix+2]-pos[ix+2])*0.025; 
+                        pos[iy]+=(originalPos[iy]-pos[iy])*0.025; 
+                        pos[iz]+=(originalPos[iz]-pos[iz])*0.025; 
                     }
                 }
                 dust.geometry.attributes.position.needsUpdate = true;
