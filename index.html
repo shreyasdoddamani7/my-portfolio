@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>SHREYAS DODDAMANI | Infinity Engine V73</title>
+    <title>SHREYAS DODDAMANI | Infinity Engine V86</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -11,46 +11,95 @@
            1. CORE ARCHITECTURE
            ========================================= */
         :root {
-            --theme-color: #ffffff; 
-            --bg-color: #050505;
+            /* Default Minimal Theme: Clean off-white */
+            --theme-color: #e6e6e6; 
+            --bg-color: #050507; /* Slightly deeper dark blue-black base */
+            --center-color: #15151a;
             --cursor-size: 30px;
-        }
-
-        @media (pointer: fine) { 
-            body { cursor: auto; } 
-            body.infinity-active, body.infinity-active * { cursor: none !important; }
         }
 
         html {
             scroll-behavior: smooth;
             overflow-x: hidden;
-            background-color: var(--bg-color);
+            height: 100%;
         }
 
         body {
             margin: 0;
-            background-color: var(--bg-color);
+            min-height: 100vh;
             color: var(--theme-color); 
             font-family: 'Syne', sans-serif;
             overflow-x: hidden;
-            transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+            
+            /* Deep Vignette */
+            background: radial-gradient(circle at 50% 40%, var(--center-color) 0%, var(--bg-color) 90%);
+            background-attachment: fixed; 
+
+            transition: background 0.8s ease,
                         color 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
                         border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
             user-select: text;
             -webkit-tap-highlight-color: transparent;
+            cursor: auto;
         }
 
         /* =========================================
-           2. INFINITY MODE (SYNC)
+           2. CRITICAL CURSOR LOGIC
            ========================================= */
-        body.infinity-active {
-            transition: background-color 0.8s ease, color 0s linear, border-color 0s linear !important;
+        /* Infinity Active = No System Cursor */
+        body.infinity-active { cursor: none; }
+        body.infinity-active * { cursor: none; }
+
+        /* Scrolled Past = Force System Cursor Return */
+        body.scrolled-past, 
+        body.infinity-active.scrolled-past,
+        body.infinity-active.scrolled-past * { 
+            cursor: auto !important; 
         }
 
-        body.infinity-active h1, 
+        /* Force Hand Pointer on Interactives when scrolled */
+        body.scrolled-past a, 
+        body.scrolled-past .profile-menu-btn, 
+        body.scrolled-past .menu-link, 
+        body.scrolled-past .social-icon, 
+        body.scrolled-past .video-card {
+            cursor: pointer !important;
+        }
+
+        /* Custom Cursor Visibility Rule */
+        .custom-cursor {
+            position: fixed; top: 0; left: 0; width: var(--cursor-size); height: var(--cursor-size);
+            pointer-events: none; z-index: 9999; mix-blend-mode: normal;
+            opacity: 0; transition: opacity 0.2s ease;
+        }
+        /* Only show custom cursor if infinity is active AND we haven't scrolled past */
+        body.infinity-active:not(.scrolled-past) .custom-cursor { opacity: 1; }
+
+        .cursor-bolt {
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/%3E%3C/svg%3E");
+            background-size: contain; background-repeat: no-repeat;
+            filter: drop-shadow(0 0 6px var(--theme-color));
+            opacity: 0.9;
+        }
+
+        /* =========================================
+           3. INFINITY MODE STYLES
+           ========================================= */
+        body.infinity-active {
+            transition: color 0s linear, border-color 0s linear !important;
+        }
+
+        /* Clean Name - No Glow */
+        body.infinity-active h1 {
+            transition: color 0s linear;
+            text-shadow: none !important;
+        }
+
+        /* Clean Gallery Title - Glow Removed per request */
         body.infinity-active .gallery-title {
-            transition: color 0s linear, text-shadow 0.3s ease !important;
-            text-shadow: 0 0 40px var(--theme-color);
+            transition: color 0s linear;
+            text-shadow: none !important;
         }
 
         body.infinity-active .profile-menu-btn,
@@ -64,7 +113,7 @@
         }
 
         /* =========================================
-           3. UI ANIMATIONS
+           4. UI ANIMATIONS & HUD
            ========================================= */
         #flash-effect {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -74,43 +123,29 @@
         @keyframes flashAnim { 0% { opacity: 0; } 10% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes revealUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* =========================================
-           4. NAVIGATION & HUD
-           ========================================= */
-        .custom-cursor {
-            position: fixed; top: 0; left: 0; width: var(--cursor-size); height: var(--cursor-size);
-            pointer-events: none; z-index: 9999; mix-blend-mode: difference;
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        body.infinity-active .custom-cursor { opacity: 1; }
-
-        .cursor-bolt {
-            width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/%3E%3C/svg%3E");
-            background-size: contain; background-repeat: no-repeat;
-            filter: drop-shadow(0 0 10px var(--theme-color));
-        }
-
         .sticky-hud {
             position: fixed; top: 0; left: 0; width: 100%;
             padding: 20px 40px; box-sizing: border-box;
             display: flex; justify-content: space-between; align-items: center;
             z-index: 100; pointer-events: none;
         }
+        @media (max-width: 768px) { .sticky-hud { padding: 15px 20px; } }
 
         .back-to-top {
             pointer-events: auto; font-weight: 800; text-transform: uppercase;
             letter-spacing: 2px; opacity: 0; transform: translateY(-20px); 
             transition: all 0.4s ease; text-decoration: none; color: var(--theme-color);
+            cursor: pointer !important;
         }
         .back-to-top.visible { opacity: 1; transform: translateY(0); }
 
         .profile-menu-btn {
             pointer-events: auto; width: 50px; height: 50px;
-            border-radius: 50%; overflow: hidden; cursor: pointer;
+            border-radius: 50%; overflow: hidden; cursor: pointer !important;
             border: 2px solid var(--theme-color);
             transition: transform 0.3s, box-shadow 0.3s;
         }
+        @media (max-width: 768px) { .profile-menu-btn { width: 40px; height: 40px; } }
         .profile-menu-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--theme-color); }
         .profile-menu-btn img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -118,14 +153,16 @@
             position: absolute; top: 40px; left: 40px;
             font-weight: 800; font-size: 0.7rem; letter-spacing: 5px;
             text-transform: uppercase; opacity: 0.6; z-index: 10;
+            user-select: none;
         }
+        @media (max-width: 768px) { .portfolio-tag { display: none; } }
 
         .hud-instructions {
             position: absolute; top: 80%; right: 25px; 
             transform: translateY(-50%); display: flex; flex-direction: column; gap: 22px;
             border-right: 2px solid var(--theme-color); padding-right: 20px; text-align: right;
             z-index: 10; opacity: 0.8; transition: 0.5s ease; pointer-events: none;
-            user-select: none !important; /* HUD PROTECTION FIXED */
+            user-select: none !important; 
         }
         @media (max-width: 768px) {
             .hud-instructions {
@@ -146,7 +183,7 @@
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .menu-drawer.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
-        .menu-link { text-decoration: none; color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
+        .menu-link { text-decoration: none; color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; cursor: pointer !important; }
         .menu-link:hover { color: var(--theme-color); padding-left: 10px; text-shadow: 0 0 10px var(--theme-color); }
 
         /* =========================================
@@ -166,30 +203,34 @@
             transition: color 0.1s linear, text-shadow 0.3s ease;
             text-align: center; width: 100%; padding: 0 20px; box-sizing: border-box; opacity: 0;
             animation: revealUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
-            user-select: none !important; /* NAME PROTECTION FIXED */
+            user-select: none !important; 
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; letter-spacing: 2px; margin-top: 140px; line-height: 1.2; }
         }
 
         .section-container {
             position: relative; z-index: 20; min-height: 100vh;
             display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 150px 20px;
-            background: linear-gradient(to bottom, transparent 0%, var(--bg-color) 30%);
+            background: transparent; 
         }
 
         .about-card {
             max-width: 800px; text-align: center; line-height: 2.4; font-size: 1.2rem; color: var(--theme-color); 
-            background: rgba(0, 0, 0, 0.92); padding: 80px 60px;
-            border: 1px solid var(--theme-color); backdrop-filter: blur(40px);
-            box-shadow: 0 0 80px rgba(0,0,0,0.9); opacity: 0;
+            background: rgba(0, 0, 0, 0.9); padding: 80px 60px;
+            border: 1px solid var(--theme-color); backdrop-filter: blur(20px);
+            box-shadow: 0 0 80px rgba(0,0,0,0.6); opacity: 0;
             transform: translateY(80px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @media (max-width: 768px) { .about-card { padding: 40px 25px; font-size: 1rem; } }
+        @media (max-width: 768px) { .about-card { padding: 40px 20px; font-size: 1rem; line-height: 1.6; } }
         .about-card.visible { opacity: 1; transform: translateY(0); }
 
         .gallery-title {
             font-size: clamp(1.5rem, 4vw, 3rem); font-weight: 800; letter-spacing: 15px; 
             text-transform: uppercase; margin-bottom: 50px; color: var(--theme-color); 
-            opacity: 0; transform: translateY(30px); transition: 0.8s ease;
+            opacity: 0; transform: translateY(30px); transition: 0.8s ease; text-align: center;
         }
+        @media (max-width: 768px) { .gallery-title { letter-spacing: 4px; font-size: 1.5rem; } }
         .gallery-title.visible { opacity: 1; transform: translateY(0); }
 
         .gallery-grid {
@@ -201,7 +242,7 @@
             height: 220px; border: 1px solid var(--theme-color); border-radius: 4px; overflow: hidden;
             background: #000; opacity: 0; transform: translateY(50px); 
             transition: transform 0.5s ease, box-shadow 0.5s ease, border-color 0.8s ease; 
-            display: block;
+            display: block; cursor: pointer !important;
         }
         .video-card.visible { opacity: 1; transform: translateY(0); }
         .video-card:hover { 
@@ -213,13 +254,13 @@
         .video-card:hover img { filter: grayscale(0) brightness(1.1); }
 
         .footer {
-            background: var(--bg-color); padding: 100px 20px; display: flex; flex-direction: column; align-items: center; gap: 30px;
+            background: rgba(0,0,0,0.95); padding: 100px 20px; display: flex; flex-direction: column; align-items: center; gap: 30px;
             position: relative; z-index: 30; border-top: 1px solid rgba(255,255,255,0.1);
         }
         .social-links { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
         .social-icon { 
             color: var(--theme-color); text-decoration: none; font-weight: 800; 
-            font-size: 1.2rem; letter-spacing: 2px; transition: 0.3s ease; 
+            font-size: 1.2rem; letter-spacing: 2px; transition: 0.3s ease; cursor: pointer !important;
         }
         .social-icon:hover { 
             color: #fff; 
@@ -295,19 +336,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        // --- 1. PERFORMANCE GLOBALS (ZERO-GC PRE-ALLOCATION) ---
         const cursor = document.querySelector('.custom-cursor');
         let mX = 0, mY = 0, cX = 0, cY = 0, lastXpct = 0.5;
         let isInfinity = false, isLocked = false, autoSpinValue = 0, rotY = 0, rotX = 0;
+        let isScrollLocked = false;
         const isMobile = window.innerWidth < 768;
 
-        // Pre-allocate 3D vectors to prevent Chrome Garbage Collection stutters
         const mouse3D = new THREE.Vector3();
         const vTemp1 = new THREE.Vector3();
         const vTemp2 = new THREE.Vector3();
 
-        // --- 2. INPUT HANDLING ---
         const handleInput = (x, y) => {
+            if (isScrollLocked) return; 
             mX = x; mY = y;
             lastXpct = x / window.innerWidth;
             mouse3D.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1, 0.5);
@@ -316,7 +356,11 @@
             syncEngine(lastXpct);
         };
 
-        document.addEventListener('mousemove', (e) => handleInput(e.clientX, e.clientY));
+        document.addEventListener('mousemove', (e) => {
+            mX = e.clientX; mY = e.clientY; 
+            handleInput(e.clientX, e.clientY);
+        });
+        
         document.addEventListener('touchmove', (e) => handleInput(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
 
         function animateUI() {
@@ -328,15 +372,9 @@
 
         function toggleMenu() { document.getElementById('menuDrawer').classList.toggle('open'); }
 
-        // --- 3. THREE.JS ENGINE (CHROME OPTIMIZED) ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ 
-            antialias: !isMobile, 
-            alpha: true, 
-            powerPreference: "high-performance",
-            precision: "mediump" // Extra speed for mobile/chrome
-        });
+        const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true, powerPreference: "high-performance" });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
         const updateSceneSize = () => {
@@ -378,22 +416,22 @@
             dustPos[i*3]=x; dustPos[i*3+1]=y; dustPos[i*3+2]=z; originalPos[i*3]=x; originalPos[i*3+1]=y; originalPos[i*3+2]=z;
         }
         dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
-        // PERFORMANCE: Tell Chrome this attribute is dynamic
         dustGeo.attributes.position.setUsage(THREE.DynamicDrawUsage);
-        
         const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xffffff, size: isMobile ? 0.28 : 0.22, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending }));
         scene.add(dust);
 
-        // --- 4. HUD & SPECTRUM ---
+        // --- THE "MIDNIGHT AURORA" SPECTRUM (Faint, Elegant, No White/Yellow) ---
         const spectrum = [
-            new THREE.Color('#a020f0'), new THREE.Color('#d000ff'), new THREE.Color('#ff0055'),
-            new THREE.Color('#ff0000'), new THREE.Color('#5500ff'), new THREE.Color('#0000ff'),
-            new THREE.Color('#00aaff'), new THREE.Color('#a020f0')
+            new THREE.Color('#8ea1e6'), // Muted Sapphire
+            new THREE.Color('#c98ec4'), // Dusty Orchid
+            new THREE.Color('#8ec9b8'), // Deep Sea Teal
+            new THREE.Color('#8ea1e6')  // Back to Sapphire
         ];
         const bgSpectrum = [
-            new THREE.Color('#020005'), new THREE.Color('#030005'), new THREE.Color('#050002'),
-            new THREE.Color('#050000'), new THREE.Color('#020005'), new THREE.Color('#000005'),
-            new THREE.Color('#000205'), new THREE.Color('#020005')
+            new THREE.Color('#05070c'), // Darker Sapphire bg
+            new THREE.Color('#0a0509'), // Darker Orchid bg
+            new THREE.Color('#050a09'), // Darker Teal bg
+            new THREE.Color('#05070c')
         ];
 
         function updateHUD() {
@@ -402,7 +440,7 @@
                 hud.innerHTML = `<div class="inst-item"><b>INFINITY</b> Double click for infinity mode.</div>`;
             } else {
                 hud.innerHTML = `
-                    <div class="inst-item"><b>SPECTRUM</b> Rotate to change colors.</div>
+                    <div class="inst-item"><b>SPECTRUM</b> Move cursor to change color.</div>
                     <div class="inst-item"><b>COMMAND</b> Click to lock color.</div>
                     <div class="inst-item"><b>SHIFT</b> Double click to transform.</div>`;
             }
@@ -418,12 +456,14 @@
             document.body.classList.toggle('infinity-active');
             
             if(isInfinity) {
-                dust.material.opacity = 0.75; sun.material.opacity = 0.9; wireSun.material.opacity = 0;
+                // DIMMED OPACITY (TINY BIT MORE DIM)
+                dust.material.opacity = 0.30; sun.material.opacity = 0.45; wireSun.material.opacity = 0;
                 syncEngine(lastXpct); 
             } else {
                 dust.material.opacity = 0; sun.material.opacity = 0; wireSun.material.opacity = 0.2;
-                document.documentElement.style.setProperty('--theme-color', '#ffffff');
-                document.documentElement.style.setProperty('--bg-color', '#050505');
+                document.documentElement.style.setProperty('--theme-color', '#e6e6e6');
+                document.documentElement.style.setProperty('--bg-color', '#050507');
+                document.documentElement.style.setProperty('--center-color', '#15151a');
             }
             updateHUD();
         }
@@ -439,28 +479,36 @@
             const segment = safePct * (spectrum.length - 1);
             const index = Math.floor(segment);
             const innerPct = segment - index;
-            vTemp1.set(0,0,0); // Reusing temp color space
+            vTemp1.set(0,0,0);
             let mainCol = new THREE.Color(); mainCol.lerpColors(spectrum[index], spectrum[index + 1], innerPct);
             let bgCol = new THREE.Color(); bgCol.lerpColors(bgSpectrum[index], bgSpectrum[index + 1], innerPct);
+            
             sun.material.color.copy(mainCol); dust.material.color.copy(mainCol);
+            
             document.documentElement.style.setProperty('--theme-color', `#${mainCol.getHexString()}`);
             document.documentElement.style.setProperty('--bg-color', `#${bgCol.getHexString()}`);
+            
+            // Subtle center spotlight
+            let centerSpot = mainCol.clone().multiplyScalar(0.1); 
+            document.documentElement.style.setProperty('--center-color', `#${centerSpot.getHexString()}`);
         }
 
-        // --- 5. ANIMATION LOOP (GC OPTIMIZED) ---
         function animate() {
             requestAnimationFrame(animate);
+            
+            const canvasOpacity = parseFloat(document.getElementById('canvas-container').style.opacity);
+            if (canvasOpacity < 0.05) return; 
+
             autoSpinValue += 0.0027; 
             wireSun.rotation.y = sun.rotation.y = autoSpinValue + (rotY * 1.2);
             wireSun.rotation.x = sun.rotation.x += ( (rotX * 1.2) - sun.rotation.x) * 0.022;
 
             if(isInfinity) {
                 const pos = dust.geometry.attributes.position.array;
-                // Reuse vectors to keep Chrome smooth
                 vTemp1.copy(mouse3D).unproject(camera);
                 vTemp2.copy(vTemp1).sub(camera.position).normalize();
                 const dPl = -camera.position.z / vTemp2.z;
-                vTemp1.copy(camera.position).add(vTemp2.multiplyScalar(dPl)); // vTemp1 is now finalMPos
+                vTemp1.copy(camera.position).add(vTemp2.multiplyScalar(dPl));
                 
                 for(let i=0; i<dustCount; i++) {
                     const ix=i*3, iy=ix+1, iz=ix+2;
@@ -485,8 +533,22 @@
         window.addEventListener('scroll', () => {
             const v = window.scrollY, h = window.innerHeight;
             const c = document.getElementById('canvas-container');
-            c.style.opacity = Math.max(0, 1 - (v / (h * 0.8)));
+            const body = document.body;
+            
+            const op = Math.max(0, 1 - (v / (h * 0.8)));
+            c.style.opacity = op;
             c.style.transform = `translateY(${-v * 0.3}px)`;
+            
+            // CLASS TOGGLE FOR CURSOR RECOVERY
+            if (v > h * 0.8) {
+                if(!body.classList.contains('scrolled-past')) body.classList.add('scrolled-past');
+            } else {
+                if(body.classList.contains('scrolled-past')) body.classList.remove('scrolled-past');
+            }
+
+            if (v > 50 && !isScrollLocked) { isScrollLocked = true; } 
+            else if (v < 50 && isScrollLocked) { isScrollLocked = false; }
+
             document.querySelector('.back-to-top').classList.toggle('visible', v > 300);
             document.querySelectorAll('.scroll-reveal').forEach(el => { if (el.getBoundingClientRect().top < h * 0.85) el.classList.add('visible'); });
         });
