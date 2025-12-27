@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>SHREYAS DODDAMANI | Infinity Engine V86</title>
+    <title>SHREYAS DODDAMANI | Infinity Engine V92</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -11,9 +15,9 @@
            1. CORE ARCHITECTURE
            ========================================= */
         :root {
-            /* Default Minimal Theme: Clean off-white */
+            /* V90 MIDNIGHT AURORA THEME */
             --theme-color: #e6e6e6; 
-            --bg-color: #050507; /* Slightly deeper dark blue-black base */
+            --bg-color: #050507; 
             --center-color: #15151a;
             --cursor-size: 30px;
         }
@@ -46,18 +50,16 @@
         /* =========================================
            2. CRITICAL CURSOR LOGIC
            ========================================= */
-        /* Infinity Active = No System Cursor */
         body.infinity-active { cursor: none; }
         body.infinity-active * { cursor: none; }
 
-        /* Scrolled Past = Force System Cursor Return */
         body.scrolled-past, 
         body.infinity-active.scrolled-past,
         body.infinity-active.scrolled-past * { 
             cursor: auto !important; 
         }
 
-        /* Force Hand Pointer on Interactives when scrolled */
+        /* FORCE POINTER ON INTERACTIVES */
         body.scrolled-past a, 
         body.scrolled-past .profile-menu-btn, 
         body.scrolled-past .menu-link, 
@@ -66,13 +68,11 @@
             cursor: pointer !important;
         }
 
-        /* Custom Cursor Visibility Rule */
         .custom-cursor {
             position: fixed; top: 0; left: 0; width: var(--cursor-size); height: var(--cursor-size);
             pointer-events: none; z-index: 9999; mix-blend-mode: normal;
             opacity: 0; transition: opacity 0.2s ease;
         }
-        /* Only show custom cursor if infinity is active AND we haven't scrolled past */
         body.infinity-active:not(.scrolled-past) .custom-cursor { opacity: 1; }
 
         .cursor-bolt {
@@ -90,13 +90,11 @@
             transition: color 0s linear, border-color 0s linear !important;
         }
 
-        /* Clean Name - No Glow */
         body.infinity-active h1 {
             transition: color 0s linear;
             text-shadow: none !important;
         }
 
-        /* Clean Gallery Title - Glow Removed per request */
         body.infinity-active .gallery-title {
             transition: color 0s linear;
             text-shadow: none !important;
@@ -131,11 +129,16 @@
         }
         @media (max-width: 768px) { .sticky-hud { padding: 15px 20px; } }
 
+        /* FIXED: SHREYAS D. BUTTON */
         .back-to-top {
-            pointer-events: auto; font-weight: 800; text-transform: uppercase;
+            pointer-events: auto; 
+            font-weight: 800; text-transform: uppercase;
             letter-spacing: 2px; opacity: 0; transform: translateY(-20px); 
             transition: all 0.4s ease; text-decoration: none; color: var(--theme-color);
-            cursor: pointer !important;
+            
+            /* THE FIX IS HERE */
+            cursor: pointer !important; 
+            user-select: none !important;
         }
         .back-to-top.visible { opacity: 1; transform: translateY(0); }
 
@@ -420,7 +423,7 @@
         const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xffffff, size: isMobile ? 0.28 : 0.22, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending }));
         scene.add(dust);
 
-        // --- THE "MIDNIGHT AURORA" SPECTRUM (Faint, Elegant, No White/Yellow) ---
+        // --- V90 MIDNIGHT AURORA SPECTRUM ---
         const spectrum = [
             new THREE.Color('#8ea1e6'), // Muted Sapphire
             new THREE.Color('#c98ec4'), // Dusty Orchid
@@ -428,9 +431,9 @@
             new THREE.Color('#8ea1e6')  // Back to Sapphire
         ];
         const bgSpectrum = [
-            new THREE.Color('#05070c'), // Darker Sapphire bg
-            new THREE.Color('#0a0509'), // Darker Orchid bg
-            new THREE.Color('#050a09'), // Darker Teal bg
+            new THREE.Color('#05070c'), 
+            new THREE.Color('#0a0509'), 
+            new THREE.Color('#050a09'), 
             new THREE.Color('#05070c')
         ];
 
@@ -456,7 +459,7 @@
             document.body.classList.toggle('infinity-active');
             
             if(isInfinity) {
-                // DIMMED OPACITY (TINY BIT MORE DIM)
+                // DIMMED SPHERE (V86 Level)
                 dust.material.opacity = 0.30; sun.material.opacity = 0.45; wireSun.material.opacity = 0;
                 syncEngine(lastXpct); 
             } else {
@@ -488,7 +491,6 @@
             document.documentElement.style.setProperty('--theme-color', `#${mainCol.getHexString()}`);
             document.documentElement.style.setProperty('--bg-color', `#${bgCol.getHexString()}`);
             
-            // Subtle center spotlight
             let centerSpot = mainCol.clone().multiplyScalar(0.1); 
             document.documentElement.style.setProperty('--center-color', `#${centerSpot.getHexString()}`);
         }
@@ -539,7 +541,6 @@
             c.style.opacity = op;
             c.style.transform = `translateY(${-v * 0.3}px)`;
             
-            // CLASS TOGGLE FOR CURSOR RECOVERY
             if (v > h * 0.8) {
                 if(!body.classList.contains('scrolled-past')) body.classList.add('scrolled-past');
             } else {
