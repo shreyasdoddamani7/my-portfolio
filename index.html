@@ -3,23 +3,30 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>SHREYAS DODDAMANI</title>
+    <title>shreyas portfolio</title>
     
     <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="apple-touch-icon" href="favicon.png">
-
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
     
+    <!-- FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         /* =========================================
            1. CORE ARCHITECTURE
            ========================================= */
         :root {
-            /* V90 MIDNIGHT AURORA THEME */
+            /* V29 STABLE THEME */
             --theme-color: #e6e6e6; 
             --bg-color: #050507; 
-            --center-color: #15151a;
-            --cursor-size: 30px;
+            
+            --prism-color: rgba(100, 125, 238, 0.15); 
+            
+            --glass-surface: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-highlight: rgba(255, 255, 255, 0.2);
+            
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         html {
@@ -34,275 +41,486 @@
             color: var(--theme-color); 
             font-family: 'Syne', sans-serif;
             overflow-x: hidden;
-            
-            /* Deep Vignette */
-            background: radial-gradient(circle at 50% 40%, var(--center-color) 0%, var(--bg-color) 90%);
-            background-attachment: fixed; 
-
-            transition: background 0.8s ease,
-                        color 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
-                        border-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-            user-select: text;
-            -webkit-tap-highlight-color: transparent;
-            cursor: auto;
+            background-color: var(--bg-color);
+            transition: background 1.2s ease, color 1.2s var(--ease-out);
+            cursor: none !important;
+            width: 100%;
+            position: relative;
         }
+
+        /* FIXED: Background Oversized & Centered to prevent edge gaps during movement */
+        #prism-bg {
+            position: fixed; 
+            width: 120vw; height: 120vh; 
+            left: -10vw; top: -10vh;     
+            z-index: 0; pointer-events: none;
+            background: radial-gradient(circle at 50% 50%, var(--prism-color) 0%, transparent 120%);
+            opacity: 0.9; 
+            transition: opacity 1.2s ease; 
+            will-change: transform;
+        }
+
+        *, *::before, *::after { cursor: none !important; box-sizing: border-box; }
 
         /* =========================================
-           2. CRITICAL CURSOR LOGIC
+           2. CURSOR SYSTEM
            ========================================= */
-        body.infinity-active { cursor: none; }
-        body.infinity-active * { cursor: none; }
-
-        body.scrolled-past, 
-        body.infinity-active.scrolled-past,
-        body.infinity-active.scrolled-past * { 
-            cursor: auto !important; 
+        .cursor-dot {
+            position: fixed; top: 0; left: 0; width: 6px; height: 6px; background: white;
+            border-radius: 50%; pointer-events: none; z-index: 10000;
+            transform: translate(-50%, -50%); mix-blend-mode: difference;
+            transition: opacity 0.3s ease;
+        }
+        .cursor-circle {
+            position: fixed; top: 0; left: 0; width: 40px; height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%; pointer-events: none; z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background 0.3s, transform 0.1s linear, border-color 0.3s, opacity 0.3s ease;
+        }
+        body.hover-active .cursor-circle {
+            width: 60px; height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(2px); border-color: transparent;
+        }
+        
+        body.is-holding .cursor-circle {
+            width: 20px; height: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-color: transparent;
+            transition: all 0.8s var(--ease-out);
         }
 
-        /* FORCE POINTER ON INTERACTIVES */
-        body.scrolled-past a, 
-        body.scrolled-past .profile-menu-btn, 
-        body.scrolled-past .menu-link, 
-        body.scrolled-past .social-icon, 
-        body.scrolled-past .video-card {
-            cursor: pointer !important;
-        }
+        body.light-mode .cursor-circle { border-color: rgba(0, 0, 0, 0.8); }
+        body.light-mode.hover-active .cursor-circle { background: rgba(0, 0, 0, 0.05); }
 
-        .custom-cursor {
-            position: fixed; top: 0; left: 0; width: var(--cursor-size); height: var(--cursor-size);
-            pointer-events: none; z-index: 9999; mix-blend-mode: normal;
-            opacity: 0; transition: opacity 0.2s ease;
+        .cursor-bolt-container {
+            position: fixed; top: 0; left: 0; width: 40px; height: 40px;
+            pointer-events: none; z-index: 10001; 
+            transform: translate(-50%, -50%);
+            opacity: 0; transition: opacity 0.3s ease;
         }
-        body.infinity-active:not(.scrolled-past) .custom-cursor { opacity: 1; }
-
-        .cursor-bolt {
+        .cursor-bolt-icon {
             width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/%3E%3C/svg%3E");
             background-size: contain; background-repeat: no-repeat;
-            filter: drop-shadow(0 0 6px var(--theme-color));
-            opacity: 0.9;
+            filter: drop-shadow(0 0 8px white);
         }
+        body.show-bolt .cursor-bolt-container { opacity: 1; }
+        body.show-bolt .cursor-dot, body.show-bolt .cursor-circle { opacity: 0; }
 
         /* =========================================
-           3. INFINITY MODE STYLES
-           ========================================= */
-        body.infinity-active {
-            transition: color 0s linear, border-color 0s linear !important;
-        }
-
-        body.infinity-active h1 {
-            transition: color 0s linear;
-            text-shadow: none !important;
-        }
-
-        body.infinity-active .gallery-title {
-            transition: color 0s linear;
-            text-shadow: none !important;
-        }
-
-        body.infinity-active .profile-menu-btn,
-        body.infinity-active .video-card {
-            transition: border-color 0s linear, transform 0.3s ease, box-shadow 0.3s ease !important;
-        }
-
-        body.infinity-active .social-icon, 
-        body.infinity-active .menu-link {
-            transition: color 0s linear, transform 0.3s ease, text-shadow 0.3s ease !important;
-        }
-
-        /* =========================================
-           4. UI ANIMATIONS & HUD
+           3. UI & HUD
            ========================================= */
         #flash-effect {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: white; z-index: 10000; pointer-events: none; opacity: 0;
+            background: white; z-index: 10001; pointer-events: none; opacity: 0;
+            transition: background-color 0.1s linear; 
         }
-        .flashing { animation: flashAnim 0.5s ease-out forwards; }
-        @keyframes flashAnim { 0% { opacity: 0; } 10% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes revealUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }
+        .flashing-entry { animation: flashEntry 0.6s ease-out forwards; } 
+        @keyframes flashEntry { 0% { opacity: 0.5; } 100% { opacity: 0; } } 
+        .flashing-subtle { animation: flashSubtle 1.5s ease-out forwards; }
+        @keyframes flashSubtle { 0% { opacity: 0; } 10% { opacity: 0.15; } 100% { opacity: 0; } }
 
         .sticky-hud {
             position: fixed; top: 0; left: 0; width: 100%;
-            padding: 20px 40px; box-sizing: border-box;
+            padding: 25px 50px; 
             display: flex; justify-content: space-between; align-items: center;
-            z-index: 100; pointer-events: none;
+            z-index: 100; pointer-events: auto;
         }
-        @media (max-width: 768px) { .sticky-hud { padding: 15px 20px; } }
+        @media (max-width: 768px) { .sticky-hud { padding: 20px; } }
 
-        /* FIXED: SHREYAS D. BUTTON */
+        .right-hud { display: flex; gap: 20px; align-items: center; }
+
         .back-to-top {
-            pointer-events: auto; 
             font-weight: 800; text-transform: uppercase;
             letter-spacing: 2px; opacity: 0; transform: translateY(-20px); 
             transition: all 0.4s ease; text-decoration: none; color: var(--theme-color);
-            
-            /* THE FIX IS HERE */
-            cursor: pointer !important; 
-            user-select: none !important;
         }
         .back-to-top.visible { opacity: 1; transform: translateY(0); }
 
-        .profile-menu-btn {
-            pointer-events: auto; width: 50px; height: 50px;
-            border-radius: 50%; overflow: hidden; cursor: pointer !important;
-            border: 2px solid var(--theme-color);
-            transition: transform 0.3s, box-shadow 0.3s;
+        .theme-toggle-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid var(--theme-color); 
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; color: var(--theme-color);
+            cursor: none; transition: 0.3s ease;
+            opacity: 1; pointer-events: auto;
         }
-        @media (max-width: 768px) { .profile-menu-btn { width: 40px; height: 40px; } }
+        .theme-toggle-btn:hover { background: var(--theme-color); color: var(--bg-color); }
+
+        .profile-menu-btn {
+            width: 50px; height: 50px; border-radius: 50%; overflow: hidden;
+            border: 2px solid var(--theme-color); 
+            transition: transform 0.3s, box-shadow 0.3s;
+            background: #000; 
+        }
         .profile-menu-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--theme-color); }
         .profile-menu-btn img { width: 100%; height: 100%; object-fit: cover; }
+        body.light-mode .profile-menu-btn { border-color: #e6e6e6; }
+        body.light-mode .profile-menu-btn:hover { box-shadow: 0 0 20px rgba(0,0,0,0.2); }
 
         .portfolio-tag {
-            position: absolute; top: 40px; left: 40px;
+            position: absolute; top: 40px; left: 50px;
             font-weight: 800; font-size: 0.7rem; letter-spacing: 5px;
             text-transform: uppercase; opacity: 0.6; z-index: 10;
-            user-select: none;
         }
         @media (max-width: 768px) { .portfolio-tag { display: none; } }
 
         .hud-instructions {
-            position: absolute; top: 80%; right: 25px; 
+            position: absolute; top: 80%; right: 40px; 
             transform: translateY(-50%); display: flex; flex-direction: column; gap: 22px;
             border-right: 2px solid var(--theme-color); padding-right: 20px; text-align: right;
             z-index: 10; opacity: 0.8; transition: 0.5s ease; pointer-events: none;
-            user-select: none !important; 
         }
-        @media (max-width: 768px) {
-            .hud-instructions {
-                top: auto; bottom: 30px; left: 20px; right: auto;
-                text-align: left; border-right: none; border-left: 2px solid var(--theme-color); padding-left: 15px;
-            }
-        }
-        .inst-item { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; line-height: 1.4; font-weight: 700; user-select: none !important; }
+        .inst-item { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; line-height: 1.4; font-weight: 700; }
         .inst-item b { color: #fff; display: block; margin-bottom: 4px; font-size: 1rem; font-weight: 800; }
+        body.light-mode .inst-item b { color: #000; }
 
         .menu-drawer {
-            position: fixed; top: 80px; right: 40px; width: 280px;
-            background: rgba(0,0,0,0.9); backdrop-filter: blur(20px);
-            border: 1px solid var(--theme-color); border-radius: 10px;
+            position: fixed; top: 90px; right: 50px; width: 280px;
+            background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border); border-radius: 12px;
             padding: 30px; display: flex; flex-direction: column; gap: 20px;
             z-index: 99; opacity: 0; pointer-events: none;
             transform: translateY(-20px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.3s var(--ease-out);
         }
         .menu-drawer.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
-        .menu-link { text-decoration: none; color: white; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; cursor: pointer !important; }
+        .menu-link { 
+            text-decoration: none; color: white; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 2px; transition: 0.3s;
+        }
         .menu-link:hover { color: var(--theme-color); padding-left: 10px; text-shadow: 0 0 10px var(--theme-color); }
 
         /* =========================================
-           5. CONTENT SECTIONS
+           4. SECTIONS & ANIMATION MASKS
            ========================================= */
         #canvas-container {
-            position: fixed; top: 18%; left: 0; width: 100vw; height: 100vh;
-            z-index: 1; pointer-events: none; will-change: opacity, transform;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; pointer-events: none; transition: opacity 1s ease;
         }
 
-        .header { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; z-index: 10; }
+        .header { 
+            height: 100vh; display: flex; flex-direction: column; align-items: center; 
+            justify-content: flex-start; padding-top: 10vh; position: relative; z-index: 10; 
+        }
 
         h1 {
-            margin-top: 60px; font-weight: 800; font-size: clamp(2rem, 8vw, 5rem); 
+            font-weight: 800; font-size: clamp(2rem, 8vw, 5rem); 
             letter-spacing: 1.5vw; text-transform: uppercase;
             color: var(--theme-color); text-shadow: none;
-            transition: color 0.1s linear, text-shadow 0.3s ease;
-            text-align: center; width: 100%; padding: 0 20px; box-sizing: border-box; opacity: 0;
-            animation: revealUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
-            user-select: none !important; 
+            text-align: center; width: 100%; padding: 0 20px; 
+            margin: 0; opacity: 1;
         }
-        @media (max-width: 768px) {
-            h1 { font-size: 2rem; letter-spacing: 2px; margin-top: 140px; line-height: 1.2; }
+        
+        .dud { color: var(--prism-color); opacity: 0.7; }
+
+        /* SCROLL INDICATOR */
+        .scroll-indicator {
+            position: absolute; bottom: 8vh;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            color: #fff !important; 
+            opacity: 0; /* Hidden by default for logic control */
+            transition: opacity 1s ease; 
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5); 
+            z-index: 20;
+        }
+        .scroll-indicator.visible { opacity: 1; }
+
+        .scroll-indicator span {
+            font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;
+            font-weight: 700;
+        }
+        .scroll-line {
+            width: 2px; height: 25px; 
+            background: #fff; border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.4);
+            animation: scrollBreathe 3s infinite ease-in-out; 
+        }
+        @keyframes scrollBreathe {
+            0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+            50% { transform: scaleY(1); opacity: 1; }
         }
 
         .section-container {
             position: relative; z-index: 20; min-height: 100vh;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 150px 20px;
-            background: transparent; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            padding: 100px 20px;
         }
 
-        .about-card {
-            max-width: 800px; text-align: center; line-height: 2.4; font-size: 1.2rem; color: var(--theme-color); 
-            background: rgba(0, 0, 0, 0.9); padding: 80px 60px;
-            border: 1px solid var(--theme-color); backdrop-filter: blur(20px);
-            box-shadow: 0 0 80px rgba(0,0,0,0.6); opacity: 0;
-            transform: translateY(80px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        /* --- CINEMATIC SOFT-FOCUS SCROLL ANIMATION --- */
+        
+        .scroll-reveal {
+            opacity: 0;
+            filter: blur(15px); 
+            transform: translateY(50px) scale(0.96); 
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @media (max-width: 768px) { .about-card { padding: 40px 20px; font-size: 1rem; line-height: 1.6; } }
-        .about-card.visible { opacity: 1; transform: translateY(0); }
+
+        .scroll-reveal.visible {
+            opacity: 1;
+            filter: blur(0);
+            transform: translateY(0) scale(1);
+        }
+
+        .projects-grid .scroll-reveal:nth-child(1) { transition-delay: 0.0s; }
+        .projects-grid .scroll-reveal:nth-child(2) { transition-delay: 0.1s; }
+        .projects-grid .scroll-reveal:nth-child(3) { transition-delay: 0.2s; }
+        .projects-grid .scroll-reveal:nth-child(4) { transition-delay: 0.3s; }
+        .projects-grid .scroll-reveal:nth-child(5) { transition-delay: 0.4s; }
+        .projects-grid .scroll-reveal:nth-child(6) { transition-delay: 0.5s; }
+
+        .gallery-grid .scroll-reveal:nth-child(1) { transition-delay: 0.0s; }
+        .gallery-grid .scroll-reveal:nth-child(2) { transition-delay: 0.15s; }
+        .gallery-grid .scroll-reveal:nth-child(3) { transition-delay: 0.3s; }
+
+        /* Mask Animation for Titles */
+        .mask-box { overflow: hidden; display: block; margin-bottom: 30px; }
+        .mask-reveal-text {
+            display: block; transform: translateY(110%); opacity: 1;
+            transition: transform 1.2s var(--ease-out);
+        }
+        .mask-box.in-view .mask-reveal-text { transform: translateY(0); }
 
         .gallery-title {
-            font-size: clamp(1.5rem, 4vw, 3rem); font-weight: 800; letter-spacing: 15px; 
-            text-transform: uppercase; margin-bottom: 50px; color: var(--theme-color); 
-            opacity: 0; transform: translateY(30px); transition: 0.8s ease; text-align: center;
+            font-size: clamp(1.5rem, 4vw, 3rem); font-weight: 800; 
+            text-transform: uppercase; color: var(--theme-color); 
+            text-align: center;
         }
-        @media (max-width: 768px) { .gallery-title { letter-spacing: 4px; font-size: 1.5rem; } }
-        .gallery-title.visible { opacity: 1; transform: translateY(0); }
 
+        /* GLASS CARD STYLES */
+        .glass-card {
+            max-width: 900px; text-align: center; line-height: 2.4; font-size: 1.2rem; 
+            color: var(--theme-color); 
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-highlight);
+            border-left: 1px solid var(--glass-highlight);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            padding: 80px 60px; border-radius: 20px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            
+            /* Initial Scroll State handled by class */
+            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.8s, filter 0.8s;
+        }
+        
+        .glass-card:hover {
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6), inset 0 0 20px rgba(255,255,255,0.05);
+            transform: translateY(-5px); 
+        }
+
+        .glass-card strong { color: #fff; font-weight: 700; }
+        body.light-mode .glass-card { background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.1); }
+        body.light-mode .glass-card strong { color: #000; }
+
+        /* --- ORBITAL SKILLS SECTION --- */
+        .orbit-container {
+            position: relative; width: 100%; height: 500px; 
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; margin-top: 20px;
+        }
+        .dev-figure-img {
+            width: 250px; height: auto;
+            filter: drop-shadow(0 0 30px rgba(255,255,255,0.1)) grayscale(1) contrast(1.2);
+            z-index: 5; animation: float 6s ease-in-out infinite;
+        }
+        body.light-mode .dev-figure-img { filter: drop-shadow(0 0 30px rgba(0,0,0,0.1)) grayscale(1); }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        
+        .orbit-ring {
+            position: absolute; top: 50%; left: 50%;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        body.light-mode .orbit-ring { border-color: rgba(0,0,0,0.1); }
+        .orbit-1 { width: 300px; height: 300px; animation: spinRight 20s linear infinite; }
+        .orbit-2 { width: 450px; height: 450px; animation: spinLeft 25s linear infinite; }
+        @keyframes spinRight { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        @keyframes spinLeft { 100% { transform: translate(-50%, -50%) rotate(-360deg); } }
+
+        .planet-icon {
+            position: absolute; top: 0; left: 50%;
+            width: 50px; height: 50px; margin-left: -25px; margin-top: -25px;
+            background: rgba(0,0,0,0.8); border: 1px solid var(--glass-border);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1.2rem;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+        body.light-mode .planet-icon { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.1); color: #000; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        .orbit-1 .planet-icon { animation: counterSpinRight 20s linear infinite; }
+        .orbit-2 .planet-icon { animation: counterSpinLeft 25s linear infinite; }
+        @keyframes counterSpinRight { 100% { transform: rotate(-360deg); } }
+        @keyframes counterSpinLeft { 100% { transform: rotate(360deg); } }
+
+        /* --- SKILL LIST COLUMN --- */
+        .skill-list-card {
+            display: flex; flex-direction: column; gap: 20px;
+            width: 100%; max-width: 500px; margin-top: 50px;
+            opacity: 0; transform: translateY(40px);
+            will-change: opacity, transform;
+            transition: all 0.8s var(--ease-out) 0.1s;
+        }
+        .skill-list-card.visible { opacity: 1; transform: translateY(0); }
+
+        .skill-row {
+            display: flex; align-items: center; gap: 20px;
+            background: rgba(255,255,255,0.03); padding: 15px 30px; border-radius: 50px;
+            border: 1px solid var(--glass-border); transition: 0.3s;
+        }
+        body.light-mode .skill-row { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.1); }
+        .skill-row:hover { background: rgba(255,255,255,0.1); transform: translateX(10px); }
+        body.light-mode .skill-row:hover { background: rgba(0,0,0,0.08); }
+        .skill-row i { font-size: 1.5rem; width: 30px; text-align: center; }
+        .skill-name { font-weight: 700; letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem; }
+
+        /* --- PROJECTS GRID --- */
+        .projects-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px; 
+            width: 100%; max-width: 1000px;
+        }
+        @media (max-width: 768px) { .projects-grid { grid-template-columns: 1fr; } }
+
+        .project-card {
+            height: 300px;
+            border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden;
+            background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px);
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+            position: relative; display: flex; align-items: center; justify-content: center;
+        }
+        .project-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.3); }
+        .project-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: 0.5s; filter: grayscale(1); }
+        .project-card:hover img { opacity: 1; filter: grayscale(0); }
+        .project-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            transform: translateY(100%); transition: 0.4s;
+        }
+        .project-card:hover .project-overlay { transform: translateY(0); }
+        .project-title { font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 2px; font-size: 1rem; }
+        body.light-mode .project-card { border-color: rgba(0,0,0,0.1); background: rgba(0,0,0,0.03); }
+        body.light-mode .project-card:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: rgba(0,0,0,0.2); }
+
+        /* --- CONTACT FORM --- */
+        .contact-card {
+            width: 100%; max-width: 800px;
+            background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border);
+            backdrop-filter: blur(30px); padding: 60px; border-radius: 20px;
+            display: flex; flex-direction: column; gap: 20px;
+            /* Scroll reveal handled by class */
+        }
+        body.light-mode .contact-card { background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.1); }
+
+        input, textarea {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            padding: 20px; color: #fff; font-family: 'Syne'; font-size: 1rem;
+            border-radius: 8px; transition: 0.3s; outline: none;
+        }
+        body.light-mode input, body.light-mode textarea {
+            background: rgba(255,255,255,0.5); color: #000; border-color: rgba(0,0,0,0.1);
+        }
+        input:focus, textarea:focus { border-color: #fff; background: rgba(0,0,0,0.5); }
+        body.light-mode input:focus, body.light-mode textarea:focus { border-color: #000; background: rgba(255,255,255,0.8); }
+
+        .submit-btn {
+            background: #fff; color: #000; padding: 20px; border: none; border-radius: 8px;
+            font-weight: 800; letter-spacing: 2px; text-transform: uppercase; cursor: none;
+            transition: 0.3s; margin-top: 10px;
+        }
+        .submit-btn:hover { box-shadow: 0 0 30px rgba(255,255,255,0.4); transform: translateY(-2px); }
+        body.light-mode .submit-btn { background: #000; color: #fff; }
+        body.light-mode .submit-btn:hover { box-shadow: 0 0 30px rgba(0,0,0,0.2); }
+
+        /* --- GALLERY --- */
         .gallery-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px; width: 100%; max-width: 1200px; perspective: 1000px;
+            gap: 40px; width: 100%; max-width: 1200px;
         }
-
         .video-card {
-            height: 220px; border: 1px solid var(--theme-color); border-radius: 4px; overflow: hidden;
+            height: 240px; border: 1px solid var(--glass-border); border-radius: 4px; overflow: hidden;
             background: #000; opacity: 0; transform: translateY(50px); 
-            transition: transform 0.5s ease, box-shadow 0.5s ease, border-color 0.8s ease; 
-            display: block; cursor: pointer !important;
+            /* scroll reveal handled by class */
+            transition: transform 0.5s ease, box-shadow 0.5s ease, border-color 0.8s ease, opacity 0.8s; 
+            display: block; position: relative;
         }
         .video-card.visible { opacity: 1; transform: translateY(0); }
-        .video-card:hover { 
-            transform: rotateX(5deg) rotateY(-5deg) scale(1.05) translateY(-10px); 
-            box-shadow: 0 0 50px var(--theme-color); 
-            z-index: 5; 
-        }
+        body.light-mode .video-card { border-color: rgba(0,0,0,0.1); }
+        .video-card:hover { transform: scale(1.05) translateY(-10px); box-shadow: 0 0 50px var(--prism-color); z-index: 5; border-color: #fff; }
+        body.light-mode .video-card:hover { border-color: #000; }
         .video-card img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) brightness(0.7); transition: 0.5s ease; }
         .video-card:hover img { filter: grayscale(0) brightness(1.1); }
 
         .footer {
-            background: rgba(0,0,0,0.95); padding: 100px 20px; display: flex; flex-direction: column; align-items: center; gap: 30px;
-            position: relative; z-index: 30; border-top: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.95); padding: 100px 20px; 
+            display: flex; flex-direction: column; align-items: center; gap: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
+        body.light-mode .footer { background: #fff; border-top-color: rgba(0,0,0,0.1); }
+
         .social-links { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
         .social-icon { 
             color: var(--theme-color); text-decoration: none; font-weight: 800; 
-            font-size: 1.2rem; letter-spacing: 2px; transition: 0.3s ease; cursor: pointer !important;
+            font-size: 1.2rem; letter-spacing: 2px; transition: 0.3s ease; 
         }
-        .social-icon:hover { 
-            color: #fff; 
-            text-shadow: 0 0 25px var(--theme-color), 0 0 45px var(--theme-color); 
-            transform: translateY(-5px);
-        }
+        .social-icon:hover { color: #fff; text-shadow: 0 0 25px var(--theme-color); transform: translateY(-5px); }
+        body.light-mode .social-icon:hover { color: #000; text-shadow: 0 0 25px rgba(0,0,0,0.2); }
+
         .copyright { font-size: 0.9rem; opacity: 0.6; letter-spacing: 2px; }
+
     </style>
 </head>
 <body id="top">
 
     <div id="flash-effect"></div>
-    <div class="custom-cursor"><div class="cursor-bolt"></div></div>
+    <div id="prism-bg"></div>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-circle"></div>
+    <div class="cursor-bolt-container"><div class="cursor-bolt-icon"></div></div>
 
     <div class="sticky-hud">
-        <a href="#top" class="back-to-top">SHREYAS D.</a>
-        <div class="profile-menu-btn" onclick="toggleMenu()">
-            <img src="me.jpg" onerror="this.src='https://placehold.co/100x100/1a1a1a/a020f0?text=ME'" alt="Profile">
+        <a href="#top" class="back-to-top interactive">SHREYAS D.</a>
+        
+        <div class="right-hud">
+            <button class="theme-toggle-btn interactive" onclick="toggleTheme()">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <div class="profile-menu-btn interactive" onclick="toggleMenu()">
+                <img src="me.jpg" onerror="this.src='https://placehold.co/100x100/111/FFF?text=ME'" alt="Profile">
+            </div>
         </div>
     </div>
 
     <div class="portfolio-tag">THE PORTFOLIO</div>
 
     <div class="menu-drawer" id="menuDrawer">
-        <a class="menu-link" onclick="toggleMenu(); window.scrollTo(0,0);">Home</a>
-        <a class="menu-link" href="#about" onclick="toggleMenu()">About</a>
-        <a class="menu-link" href="#work" onclick="toggleMenu()">Work</a>
-        <a class="menu-link" href="#contact" onclick="toggleMenu()">Contact</a>
+        <a class="menu-link interactive" onclick="toggleMenu(); window.scrollTo(0,0);">Home</a>
+        <a class="menu-link interactive" href="#about" onclick="toggleMenu()">About</a>
+        <a class="menu-link interactive" href="#skills" onclick="toggleMenu()">Skills</a>
+        <a class="menu-link interactive" href="#projects" onclick="toggleMenu()">Projects</a>
+        <a class="menu-link interactive" href="#work" onclick="toggleMenu()">Work</a>
+        <a class="menu-link interactive" href="#contact" onclick="toggleMenu()">Contact</a>
     </div>
 
     <div id="canvas-container"></div>
 
     <div class="header">
-        <h1>SHREYAS DODDAMANI</h1>
+        <h1 id="scrambleText">SHREYAS DODDAMANI</h1>
+        <div class="scroll-indicator" id="scrollIndicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-line"></div>
+        </div>
         <div class="hud-instructions" id="hud"></div>
     </div>
 
+    <!-- INTRO CARD -->
     <div class="section-container" id="about">
-        <div class="about-card scroll-reveal">
+        <div class="mask-box">
+            <h2 class="gallery-title mask-reveal-text">ABOUT ME</h2>
+        </div>
+        <div class="glass-card scroll-reveal">
             Hey! , I'm <strong>Shreyas Doddamani</strong>, a tech enthusiast pursuing my Bachelor of Computer Applications at <strong>KLE BCA College, Dharwad</strong>.
             <br><br>
             I have a foundational knowledge of <strong>C, Java, and Python</strong>, and am currently diving deep into <strong>Web Development</strong>. 
@@ -312,82 +530,200 @@
         </div>
     </div>
 
-    <div class="section-container" id="work">
-        <h2 class="gallery-title scroll-reveal">SOME OF MY EDITS</h2>
-        <div class="gallery-grid">
-            <a href="https://youtu.be/w52vyHk8p8k" target="_blank" class="video-card scroll-reveal">
-                <img src="edit1.jpg" onerror="this.src='https://placehold.co/600x400/1a1a1a/a020f0?text=Edit+1'">
-            </a>
-            <a href="https://youtu.be/cN22fXTyGI4" target="_blank" class="video-card scroll-reveal">
-                <img src="edit2.jpg" onerror="this.src='https://placehold.co/600x400/1a1a1a/ff0000?text=Edit+2'">
-            </a>
-            <a href="https://youtu.be/xnTLzKKvElg" target="_blank" class="video-card scroll-reveal">
-                <img src="edit3.jpg" onerror="this.src='https://placehold.co/600x400/1a1a1a/0088ff?text=Edit+3'">
-            </a>
+    <!-- SKILLS SECTION -->
+    <div class="section-container" id="skills">
+        <div class="glass-card scroll-reveal" style="padding: 40px; overflow: hidden; max-width: 1200px; width: 100%;">
+            <div class="mask-box">
+                <h2 class="gallery-title mask-reveal-text">SKILLS</h2>
+            </div>
+            <div class="orbit-container">
+                <img src="sketch.png" onerror="this.src='https://placehold.co/400x600/transparent/FFF?text=Your+Sketch'" class="dev-figure-img" alt="Sketch">
+                <div class="orbit-ring orbit-1"><div class="planet-icon" style="top:0;left:50%"><i class="fab fa-html5"></i></div><div class="planet-icon" style="top:50%;left:100%"><i class="fab fa-css3-alt"></i></div><div class="planet-icon" style="top:100%;left:50%"><i class="fab fa-js"></i></div><div class="planet-icon" style="top:50%;left:0">C</div></div>
+                <div class="orbit-ring orbit-2"><div class="planet-icon" style="top:15%;left:85%"><i class="fab fa-java"></i></div><div class="planet-icon" style="top:85%;left:15%"><i class="fab fa-python"></i></div></div>
+            </div>
+        </div>
+
+        <div class="skill-list-card scroll-reveal">
+            <div class="skill-row interactive"><i class="fab fa-java"></i> <span class="skill-name">Java</span></div>
+            <div class="skill-row interactive"><i class="fab fa-python"></i> <span class="skill-name">Python</span></div>
+            <div class="skill-row interactive"><b>C</b> <span class="skill-name">C Language</span></div>
+            <div class="skill-row interactive"><i class="fab fa-html5"></i> <span class="skill-name">HTML</span></div>
+            <div class="skill-row interactive"><i class="fab fa-css3-alt"></i> <span class="skill-name">CSS</span></div>
+            <div class="skill-row interactive"><i class="fab fa-js"></i> <span class="skill-name">JavaScript</span></div>
         </div>
     </div>
 
-    <div class="footer" id="contact">
-        <div class="social-links">
-            <a class="social-icon" href="https://www.youtube.com/@Mellorine_Editz7" target="_blank">YOUTUBE</a>
-            <a class="social-icon" href="https://www.linkedin.com/in/shreyas-doddamani-6246583a3" target="_blank">LINKEDIN</a>
-            <a class="social-icon" href="https://github.com/shreyasdoddamani7" target="_blank">GITHUB</a>
+    <!-- PROJECTS SECTION -->
+    <div class="section-container" id="projects">
+        <div class="mask-box">
+            <h2 class="gallery-title mask-reveal-text">PROJECTS</h2>
         </div>
-        <div class="copyright">© 2025 Shreyas Doddamani.</div>
+        <div class="projects-grid">
+            <div class="project-card scroll-reveal interactive"><img src="https://placehold.co/600x400/101010/FFF?text=COMING+SOON"><div class="project-overlay"><span class="project-title">COMING SOON</span></div></div>
+            <div class="project-card scroll-reveal interactive"><img src="https://placehold.co/600x400/151515/FFF?text=COMING+SOON"><div class="project-overlay"><span class="project-title">COMING SOON</span></div></div>
+            <div class="project-card scroll-reveal interactive"><img src="https://placehold.co/600x400/0a0a0a/FFF?text=COMING+SOON"><div class="project-overlay"><span class="project-title">COMING SOON</span></div></div>
+            <div class="project-card scroll-reveal interactive"><img src="https://placehold.co/600x400/101010/FFF?text=COMING+SOON"><div class="project-overlay"><span class="project-title">COMING SOON</span></div></div>
+            <div class="project-card scroll-reveal interactive"><img src="https://placehold.co/600x400/151515/FFF?text=COMING+SOON"><div class="project-overlay"><span class="project-title">COMING SOON</span></div></div>
+            <div class="project-card scroll-reveal interactive"><img src="https://placehold.co/600x400/0a0a0a/FFF?text=COMING+SOON"><div class="project-overlay"><span class="project-title">COMING SOON</span></div></div>
+        </div>
+    </div>
+
+    <!-- EDITS SECTION -->
+    <div class="section-container" id="work">
+        <div class="mask-box">
+            <h2 class="gallery-title mask-reveal-text">SOME OF MY EDITS</h2>
+        </div>
+        <div class="gallery-grid">
+            <a href="https://youtu.be/w52vyHk8p8k" target="_blank" class="video-card scroll-reveal interactive"><img src="edit1.jpg" onerror="this.src='https://placehold.co/600x400/101010/FFF?text=Edit+1'"></a>
+            <a href="https://youtu.be/cN22fXTyGI4" target="_blank" class="video-card scroll-reveal interactive"><img src="edit2.jpg" onerror="this.src='https://placehold.co/600x400/151515/FFF?text=Edit+2'"></a>
+            <a href="https://youtu.be/xnTLzKKvElg" target="_blank" class="video-card scroll-reveal interactive"><img src="edit3.jpg" onerror="this.src='https://placehold.co/600x400/0a0a0a/FFF?text=Edit+3'"></a>
+        </div>
+    </div>
+
+    <!-- CONTACT SECTION -->
+    <div class="section-container" id="contact">
+        <div class="mask-box">
+            <h2 class="gallery-title mask-reveal-text">CONTACT</h2>
+        </div>
+        <div class="contact-card scroll-reveal">
+            <form>
+                <div style="display: flex; gap: 20px;">
+                    <input type="text" id="contact-name" placeholder="NAME" class="interactive">
+                    <input type="email" id="contact-email" placeholder="EMAIL" class="interactive">
+                </div>
+                <input type="text" id="contact-subject" placeholder="SUBJECT" class="interactive">
+                <textarea id="contact-message" rows="5" placeholder="MESSAGE" class="interactive"></textarea>
+                <button type="button" class="submit-btn interactive" onclick="sendEmail()">SEND MESSAGE</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="social-links">
+            <a class="social-icon interactive" href="https://www.youtube.com/@Mellorine_Editz7" target="_blank">YOUTUBE</a>
+            <a class="social-icon interactive" href="https://www.linkedin.com/in/shreyas-doddamani-6246583a3" target="_blank">LINKEDIN</a>
+            <a class="social-icon interactive" href="https://github.com/shreyasdoddamani7" target="_blank">GITHUB</a>
+        </div>
+        <div class="copyright">© 2026 Shreyas Doddamani.</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        const cursor = document.querySelector('.custom-cursor');
-        let mX = 0, mY = 0, cX = 0, cY = 0, lastXpct = 0.5;
-        let isInfinity = false, isLocked = false, autoSpinValue = 0, rotY = 0, rotX = 0;
-        let isScrollLocked = false;
-        const isMobile = window.innerWidth < 768;
+        class TextScramble {
+            constructor(el) { this.el = el; this.chars = '!<>-_\\/[]{}—=+*^?#________'; this.update = this.update.bind(this); }
+            setText(newText) {
+                const oldText = this.el.innerText; const length = Math.max(oldText.length, newText.length);
+                const promise = new Promise(resolve => this.resolve = resolve); this.queue = [];
+                for (let i = 0; i < length; i++) {
+                    const from = oldText[i] || ''; const to = newText[i] || '';
+                    const start = Math.floor(Math.random() * 40); const end = start + Math.floor(Math.random() * 40);
+                    this.queue.push({ from, to, start, end });
+                }
+                cancelAnimationFrame(this.frameRequest); this.frame = 0; this.update(); return promise;
+            }
+            update() {
+                let output = ''; let complete = 0;
+                for (let i = 0, n = this.queue.length; i < n; i++) {
+                    let { from, to, start, end, char } = this.queue[i];
+                    if (this.frame >= end) { complete++; output += to; } 
+                    else if (this.frame >= start) {
+                        if (!char || Math.random() < 0.28) { char = this.randomChar(); this.queue[i].char = char; }
+                        output += `<span class="dud">${char}</span>`;
+                    } else { output += from; }
+                }
+                this.el.innerHTML = output;
+                if (complete === this.queue.length) { this.resolve(); } else { this.frameRequest = requestAnimationFrame(this.update); this.frame++; }
+            }
+            randomChar() { return this.chars[Math.floor(Math.random() * this.chars.length)]; }
+        }
 
-        const mouse3D = new THREE.Vector3();
-        const vTemp1 = new THREE.Vector3();
-        const vTemp2 = new THREE.Vector3();
-
-        const handleInput = (x, y) => {
-            if (isScrollLocked) return; 
-            mX = x; mY = y;
-            lastXpct = x / window.innerWidth;
-            mouse3D.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1, 0.5);
-            rotY = (lastXpct - 0.5) * 1.5;
-            rotX = (y / window.innerHeight - 0.5) * 1.5;
-            syncEngine(lastXpct);
-        };
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorCircle = document.querySelector('.cursor-circle');
+        const cursorBolt = document.querySelector('.cursor-bolt-container');
+        const prismBg = document.getElementById('prism-bg');
+        
+        let mouseX = 0, mouseY = 0;
+        let cX = 0, cY = 0;
+        let isHolding = false;
+        let holdStartTime = 0;
+        const HOLD_THRESHOLD = 800;
 
         document.addEventListener('mousemove', (e) => {
-            mX = e.clientX; mY = e.clientY; 
-            handleInput(e.clientX, e.clientY);
+            mouseX = e.clientX; mouseY = e.clientY;
+            cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+            cursorBolt.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+            const xPct = (mouseX / window.innerWidth - 0.5);
+            const yPct = (mouseY / window.innerHeight - 0.5);
+            prismBg.style.transform = `translate(${xPct * 40}px, ${yPct * 40}px)`;
         });
-        
-        document.addEventListener('touchmove', (e) => handleInput(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
 
-        function animateUI() {
-            cX += (mX - cX) * 0.08; cY += (mY - cY) * 0.08;
-            cursor.style.transform = `translate3d(${cX - 15}px, ${cY - 15}px, 0)`;
-            requestAnimationFrame(animateUI);
+        function animateCursor() {
+            cX += (mouseX - cX) * 0.15; cY += (mouseY - cY) * 0.15;
+            cursorCircle.style.transform = `translate(${cX}px, ${cY}px) translate(-50%, -50%)`;
+            requestAnimationFrame(animateCursor);
         }
-        animateUI();
+        animateCursor();
+        
+        document.addEventListener('mousedown', (e) => {
+            if(e.button !== 0) return; 
+            if(e.target.closest('.interactive') || !isInfinity) return;
+            isHolding = true; holdStartTime = Date.now(); document.body.classList.add('is-holding'); 
+        });
 
-        function toggleMenu() { document.getElementById('menuDrawer').classList.toggle('open'); }
+        document.addEventListener('mouseup', () => { isHolding = false; document.body.classList.remove('is-holding'); });
+        document.addEventListener('mouseleave', () => { isHolding = false; document.body.classList.remove('is-holding'); });
 
+        document.querySelectorAll('.interactive, a, button, input, textarea').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('hover-active'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('hover-active'));
+        });
+
+        let isLightMode = false;
+        function toggleTheme() {
+            isLightMode = !isLightMode;
+            const btn = document.getElementById('themeIcon');
+            if (isLightMode) {
+                document.body.classList.add('light-mode');
+                btn.classList.remove('fa-moon'); btn.classList.add('fa-sun');
+                if (!isInfinity) {
+                    document.documentElement.style.setProperty('--theme-color', '#222');
+                    document.documentElement.style.setProperty('--bg-color', '#f4f4f7');
+                    document.documentElement.style.setProperty('--prism-color', 'rgba(0,0,0,0.05)');
+                    lineMat.color.setHex(0x000000); lineMat.opacity = 0.4;
+                }
+            } else {
+                document.body.classList.remove('light-mode');
+                btn.classList.remove('fa-sun'); btn.classList.add('fa-moon');
+                if (!isInfinity) {
+                    document.documentElement.style.setProperty('--theme-color', '#e6e6e6');
+                    document.documentElement.style.setProperty('--bg-color', '#050507');
+                    document.documentElement.style.setProperty('--prism-color', 'rgba(100, 125, 238, 0.15)'); 
+                    lineMat.color.setHex(0xffffff); lineMat.opacity = 0.12;
+                }
+            }
+        }
+
+        function sendEmail() {
+            const name = document.getElementById('contact-name').value;
+            const email = document.getElementById('contact-email').value;
+            const subject = document.getElementById('contact-subject').value;
+            const message = document.getElementById('contact-message').value;
+            window.location.href = `mailto:shreyasdoddamani7@gmail.com?subject=${encodeURIComponent(subject || 'Portfolio Inquiry')}&body=${`Name: ${name}%0D%0AEmail: ${email}%0D%0A%0D%0AMessage:%0D%0A${message}`}`;
+        }
+
+        // THREE.JS
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true, powerPreference: "high-performance" });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
         const updateSceneSize = () => {
             camera.aspect = window.innerWidth / window.innerHeight;
-            camera.position.z = window.innerWidth < 768 ? 12 : 7.5; 
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.position.z = window.innerWidth < 768 ? 10 : 7; camera.position.y = 0.5; 
+            camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
         };
-        updateSceneSize();
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        updateSceneSize(); document.getElementById('canvas-container').appendChild(renderer.domElement);
         window.addEventListener('resize', updateSceneSize);
 
         function createGlowTexture() {
@@ -395,170 +731,186 @@
             const ctx = canvas.getContext('2d');
             const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
             g.addColorStop(0, 'white'); g.addColorStop(0.3, 'rgba(255,255,255,0.7)'); g.addColorStop(1, 'transparent');
-            ctx.fillStyle = g; ctx.fillRect(0,0,128,128);
-            return new THREE.CanvasTexture(canvas);
+            ctx.fillStyle = g; ctx.fillRect(0,0,128,128); return new THREE.CanvasTexture(canvas);
         }
         const glowMap = createGlowTexture();
 
-        const wireSun = new THREE.Mesh(
-            new THREE.IcosahedronGeometry(2.4, 2), 
-            new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.2 })
-        );
-        scene.add(wireSun);
+        const sphereGeo = new THREE.IcosahedronGeometry(2.2, 2); 
+        const nodeMat = new THREE.PointsMaterial({ size: 0, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, color: 0xffffff });
+        const nodes = new THREE.Points(sphereGeo, nodeMat);
+        nodes.position.y = -0.8; scene.add(nodes);
 
-        const sunGeo = new THREE.IcosahedronGeometry(2.4, 15);
-        const sunMat = new THREE.PointsMaterial({ color: 0xffffff, size: isMobile ? 0.18 : 0.14, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
-        const sun = new THREE.Points(sunGeo, sunMat);
-        scene.add(sun);
+        const wireGeo = new THREE.WireframeGeometry(sphereGeo);
+        const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending });
+        const connections = new THREE.LineSegments(wireGeo, lineMat);
+        connections.position.y = -0.8; scene.add(connections);
 
-        const dustCount = isMobile ? 12000 : 28000; 
-        const dustGeo = new THREE.BufferGeometry();
-        const dustPos = new Float32Array(dustCount * 3), originalPos = new Float32Array(dustCount * 3);
-        for (let i = 0; i < dustCount; i++) {
-            const x=(Math.random()-0.5)*80, y=(Math.random()-0.5)*80, z=(Math.random()-0.5)*80;
-            dustPos[i*3]=x; dustPos[i*3+1]=y; dustPos[i*3+2]=z; originalPos[i*3]=x; originalPos[i*3+1]=y; originalPos[i*3+2]=z;
-        }
-        dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
-        dustGeo.attributes.position.setUsage(THREE.DynamicDrawUsage);
-        const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xffffff, size: isMobile ? 0.28 : 0.22, map: glowMap, transparent: true, opacity: 0, blending: THREE.AdditiveBlending }));
-        scene.add(dust);
-
-        // --- V90 MIDNIGHT AURORA SPECTRUM ---
-        const spectrum = [
-            new THREE.Color('#8ea1e6'), // Muted Sapphire
-            new THREE.Color('#c98ec4'), // Dusty Orchid
-            new THREE.Color('#8ec9b8'), // Deep Sea Teal
-            new THREE.Color('#8ea1e6')  // Back to Sapphire
-        ];
-        const bgSpectrum = [
-            new THREE.Color('#05070c'), 
-            new THREE.Color('#0a0509'), 
-            new THREE.Color('#050a09'), 
-            new THREE.Color('#05070c')
-        ];
-
+        const spectrum = [ new THREE.Color('#647dee'), new THREE.Color('#9d50bb'), new THREE.Color('#e3c08d'), new THREE.Color('#11998e'), new THREE.Color('#647dee') ];
+        
+        let isInfinity = false; let isLocked = false; let autoSpinValue = 0; let isScrolledPastHeader = false;
+        let currentThemeIndex = 0; let targetColor = new THREE.Color('#647dee');
+        
         function updateHUD() {
             const hud = document.getElementById('hud');
-            if(!isInfinity) {
-                hud.innerHTML = `<div class="inst-item"><b>INFINITY</b> Double click for infinity mode.</div>`;
-            } else {
-                hud.innerHTML = `
-                    <div class="inst-item"><b>SPECTRUM</b> Move cursor to change color.</div>
-                    <div class="inst-item"><b>COMMAND</b> Click to lock color.</div>
-                    <div class="inst-item"><b>SHIFT</b> Double click to transform.</div>`;
-            }
+            if(!isInfinity) hud.innerHTML = `<div class="inst-item"><b>INFINITY</b> Double click for infinity mode.</div>`;
+            else hud.innerHTML = `<div class="inst-item"><b>SPECTRUM</b> Hold click to change color.</div><div class="inst-item"><b>EXIT</b> Double click to transform.</div>`;
         }
         updateHUD();
 
         function toggleInfinity() {
+            if (isScrolledPastHeader) return;
             if (window.getSelection) { window.getSelection().removeAllRanges(); }
             const flash = document.getElementById('flash-effect');
-            flash.classList.add('flashing'); setTimeout(() => flash.classList.remove('flashing'), 500);
+            flash.style.backgroundColor = 'white'; flash.className = ''; void flash.offsetWidth;
+            flash.classList.add('flashing-entry'); setTimeout(() => flash.classList.remove('flashing-entry'), 600);
 
             isInfinity = !isInfinity; isLocked = false;
-            document.body.classList.toggle('infinity-active');
-            
+            if(isInfinity) document.body.classList.add('show-bolt');
+            else document.body.classList.remove('show-bolt');
+            updateHUD();
+
+            const themeBtn = document.querySelector('.theme-toggle-btn');
             if(isInfinity) {
-                // DIMMED SPHERE (V86 Level)
-                dust.material.opacity = 0.30; sun.material.opacity = 0.45; wireSun.material.opacity = 0;
-                syncEngine(lastXpct); 
-            } else {
-                dust.material.opacity = 0; sun.material.opacity = 0; wireSun.material.opacity = 0.2;
+                themeBtn.style.opacity = '0'; themeBtn.style.pointerEvents = 'none';
+                document.body.classList.remove('light-mode'); 
                 document.documentElement.style.setProperty('--theme-color', '#e6e6e6');
                 document.documentElement.style.setProperty('--bg-color', '#050507');
-                document.documentElement.style.setProperty('--center-color', '#15151a');
+                lineMat.color.setHex(0xffffff); lineMat.opacity = 0.15; nodeMat.size = 0.13; nodeMat.opacity = 0.6; 
+                applyTheme(0, false); 
+            } else {
+                themeBtn.style.opacity = '1'; themeBtn.style.pointerEvents = 'auto';
+                document.body.classList.remove('show-bolt');
+                nodeMat.size = 0; nodeMat.opacity = 0; nodeMat.color.setHex(0xffffff);
+                if (isLightMode) {
+                    document.body.classList.add('light-mode');
+                    document.documentElement.style.setProperty('--theme-color', '#222');
+                    document.documentElement.style.setProperty('--bg-color', '#f4f4f7');
+                    document.documentElement.style.setProperty('--prism-color', 'rgba(0,0,0,0.05)');
+                    lineMat.color.setHex(0x000000); lineMat.opacity = 0.4; 
+                } else {
+                    document.body.classList.remove('light-mode');
+                    document.documentElement.style.setProperty('--theme-color', '#e6e6e6');
+                    document.documentElement.style.setProperty('--bg-color', '#050507');
+                    document.documentElement.style.setProperty('--prism-color', 'rgba(100, 125, 238, 0.15)'); 
+                    lineMat.color.setHex(0xffffff); lineMat.opacity = 0.12; 
+                }
             }
-            updateHUD();
         }
 
-        window.addEventListener('dblclick', (e) => {
-            if(e.target.closest('.profile-menu-btn') || e.target.closest('.menu-link') || e.target.closest('a')) return;
-            toggleInfinity();
-        });
-
-        function syncEngine(xPct) {
-            if (!isInfinity || isLocked) return;
-            const safePct = Math.min(Math.max(xPct, 0), 0.9999);
-            const segment = safePct * (spectrum.length - 1);
-            const index = Math.floor(segment);
-            const innerPct = segment - index;
-            vTemp1.set(0,0,0);
-            let mainCol = new THREE.Color(); mainCol.lerpColors(spectrum[index], spectrum[index + 1], innerPct);
-            let bgCol = new THREE.Color(); bgCol.lerpColors(bgSpectrum[index], bgSpectrum[index + 1], innerPct);
-            
-            sun.material.color.copy(mainCol); dust.material.color.copy(mainCol);
-            
-            document.documentElement.style.setProperty('--theme-color', `#${mainCol.getHexString()}`);
-            document.documentElement.style.setProperty('--bg-color', `#${bgCol.getHexString()}`);
-            
-            let centerSpot = mainCol.clone().multiplyScalar(0.1); 
-            document.documentElement.style.setProperty('--center-color', `#${centerSpot.getHexString()}`);
+        window.addEventListener('dblclick', (e) => { if(e.target.closest('.interactive')) return; toggleInfinity(); });
+        function shiftTheme() { currentThemeIndex = (currentThemeIndex + 1) % (spectrum.length - 1); applyTheme(currentThemeIndex, true); }
+        function applyTheme(index, flash) {
+            const color = spectrum[index]; targetColor.copy(color); 
+            document.documentElement.style.setProperty('--theme-color', `#${color.getHexString()}`);
+            document.documentElement.style.setProperty('--prism-color', `rgba(${color.r*255}, ${color.g*255}, ${color.b*255}, 0.7)`);
+            if(flash) {
+                const fl = document.getElementById('flash-effect'); fl.style.backgroundColor = `#${color.getHexString()}`;
+                fl.className = ''; void fl.offsetWidth; fl.classList.add('flashing-subtle');
+            }
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            
-            const canvasOpacity = parseFloat(document.getElementById('canvas-container').style.opacity);
+            const canvasOpacity = parseFloat(document.getElementById('canvas-container').style.opacity || 1);
             if (canvasOpacity < 0.05) return; 
 
-            autoSpinValue += 0.0027; 
-            wireSun.rotation.y = sun.rotation.y = autoSpinValue + (rotY * 1.2);
-            wireSun.rotation.x = sun.rotation.x += ( (rotX * 1.2) - sun.rotation.x) * 0.022;
+            const speed = isInfinity ? 0.0012 : 0.0007; autoSpinValue += speed;
+            let rotY = (mouseX / window.innerWidth - 0.5) * 0.5; let rotX = (mouseY / window.innerHeight - 0.5) * 0.5;
+            nodes.rotation.y = autoSpinValue + rotY; nodes.rotation.x = rotX;
+            connections.rotation.y = autoSpinValue + rotY; connections.rotation.x = rotX;
+            
+            if (isHolding && !isLocked) {
+                const duration = Date.now() - holdStartTime; const chargeProgress = Math.min(duration / HOLD_THRESHOLD, 1.0);
+                const expansion = 1.0 + chargeProgress * 0.05; 
+                nodes.scale.setScalar(expansion); connections.scale.setScalar(expansion);
+                lineMat.opacity = 0.15 + (chargeProgress * 0.4); nodeMat.size = 0.13 + (chargeProgress * 0.05);
+                if (duration > HOLD_THRESHOLD) { shiftTheme(); isHolding = false; }
+            } else {
+                nodes.scale.lerp(new THREE.Vector3(1,1,1), 0.1); connections.scale.lerp(new THREE.Vector3(1,1,1), 0.1);
+            }
 
-            if(isInfinity) {
-                const pos = dust.geometry.attributes.position.array;
-                vTemp1.copy(mouse3D).unproject(camera);
-                vTemp2.copy(vTemp1).sub(camera.position).normalize();
-                const dPl = -camera.position.z / vTemp2.z;
-                vTemp1.copy(camera.position).add(vTemp2.multiplyScalar(dPl));
-                
-                for(let i=0; i<dustCount; i++) {
-                    const ix=i*3, iy=ix+1, iz=ix+2;
-                    const dx=pos[ix]-vTemp1.x, dy=pos[iy]-vTemp1.y, dz=pos[iz]-vTemp1.z;
-                    const d=Math.sqrt(dx*dx+dy*dy+dz*dz);
-                    if(d<5.5) { 
-                        const f=(5.5-d)/5.5; 
-                        pos[ix]+=dx*f*0.18; pos[iy]+=dy*f*0.18; pos[iz]+=dz*f*0.18; 
-                    } else { 
-                        pos[ix]+=(originalPos[ix]-pos[ix])*0.025; 
-                        pos[iy]+=(originalPos[iy]-pos[iy])*0.025; 
-                        pos[iz]+=(originalPos[iz]-pos[iz])*0.025; 
-                    }
-                }
-                dust.geometry.attributes.position.needsUpdate = true;
-                dust.rotation.y += 0.00022;
+            if(isInfinity && !isHolding) {
+                nodeMat.color.lerp(targetColor, 0.05); lineMat.color.lerp(targetColor, 0.05);
+                lineMat.opacity = 0.15 + Math.sin(Date.now() * 0.001 * 3) * 0.05;
             }
             renderer.render(scene, camera);
         }
         animate();
 
-        window.addEventListener('scroll', () => {
-            const v = window.scrollY, h = window.innerHeight;
+        // 5. BULLETPROOF ANIMATION LOOP
+        function revealElements() {
+            const reveals = document.querySelectorAll('.scroll-reveal, .scroll-reveal-card, .gallery-title, .glass-card, .skill-list-card, .contact-card, .mask-box');
+            const windowHeight = window.innerHeight;
+            const elementVisible = 100;
+
+            reveals.forEach((reveal) => {
+                const rect = reveal.getBoundingClientRect();
+                if (rect.top < windowHeight - elementVisible && rect.bottom > 0) {
+                    reveal.classList.add('visible');
+                    if(reveal.classList.contains('mask-box')) reveal.classList.add('in-view');
+                    if(reveal.classList.contains('skill-list-card')) reveal.classList.add('in-view');
+                    if(reveal.classList.contains('glass-card')) reveal.classList.add('in-view');
+                } else {
+                    reveal.classList.remove('visible');
+                    if(reveal.classList.contains('mask-box')) reveal.classList.remove('in-view');
+                    if(reveal.classList.contains('skill-list-card')) reveal.classList.remove('in-view');
+                    if(reveal.classList.contains('glass-card')) reveal.classList.remove('in-view');
+                }
+            });
+        }
+
+        // Logic for Scroll Indicator & Bolt
+        function checkScrollState() {
+            const v = window.scrollY;
+            const h = window.innerHeight;
             const c = document.getElementById('canvas-container');
-            const body = document.body;
-            
+            const indicator = document.getElementById('scrollIndicator');
+            const toTop = document.querySelector('.back-to-top');
+
+            // Parallax
             const op = Math.max(0, 1 - (v / (h * 0.8)));
-            c.style.opacity = op;
-            c.style.transform = `translateY(${-v * 0.3}px)`;
+            c.style.opacity = op; c.style.transform = `translateY(${-v * 0.2}px)`; 
             
+            // Bolt
             if (v > h * 0.8) {
-                if(!body.classList.contains('scrolled-past')) body.classList.add('scrolled-past');
+                isScrolledPastHeader = true; document.body.classList.remove('show-bolt');
+                indicator.classList.add('hidden'); 
             } else {
-                if(body.classList.contains('scrolled-past')) body.classList.remove('scrolled-past');
+                isScrolledPastHeader = false; indicator.classList.remove('hidden'); 
+                if (isInfinity) document.body.classList.add('show-bolt');
             }
+            
+            toTop.classList.toggle('visible', v > 300);
+        }
 
-            if (v > 50 && !isScrollLocked) { isScrollLocked = true; } 
-            else if (v < 50 && isScrollLocked) { isScrollLocked = false; }
-
-            document.querySelector('.back-to-top').classList.toggle('visible', v > 300);
-            document.querySelectorAll('.scroll-reveal').forEach(el => { if (el.getBoundingClientRect().top < h * 0.85) el.classList.add('visible'); });
+        // Timer Logic
+        function resetTimer() {
+            scrollIndicator.classList.remove('visible'); clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => { if(window.scrollY < 100) scrollIndicator.classList.add('visible'); }, 2000);
+        }
+        let idleTimer;
+        
+        // Single Scroll Listener
+        window.addEventListener('scroll', () => {
+            revealElements();
+            checkScrollState();
+            resetTimer();
         });
+        
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('click', resetTimer);
 
-        window.addEventListener('click', (e) => { 
-            if (window.getSelection().toString().length > 0 || e.target.closest('.profile-menu-btn') || e.target.closest('a')) return;
-            if(isInfinity) isLocked = !isLocked; 
+        function toggleMenu() { document.getElementById('menuDrawer').classList.toggle('open'); }
+
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', () => {
+            revealElements();
+            checkScrollState();
+            const el = document.querySelector('#scrambleText');
+            const fx = new TextScramble(el);
+            fx.setText('SHREYAS DODDAMANI');
+            resetTimer();
         });
     </script>
-
 </body>
 </html>
