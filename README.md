@@ -1,2 +1,2 @@
 #Portfolio link -
-https://github.com/shreyasdoddamani7
+https://shreyasdoddamani7.github.io/my-portfolio/
